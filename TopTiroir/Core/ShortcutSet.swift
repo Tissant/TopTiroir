@@ -18,9 +18,9 @@ enum ShortcutAction: String, CaseIterable, Identifiable, Sendable {
     var defaultShortcut: Shortcut {
         switch self {
         case .openDrawer: .f12
-        case .tabNotes: Shortcut(keyCode: 18, modifiers: 0)       // 1
-        case .tabFavorites: Shortcut(keyCode: 19, modifiers: 0)   // 2
-        case .tabSettings: Shortcut(keyCode: 20, modifiers: 0)    // 3
+        case .tabNotes: Shortcut(keyCode: 122, modifiers: 0)      // F1
+        case .tabFavorites: Shortcut(keyCode: 120, modifiers: 0)  // F2
+        case .tabSettings: Shortcut(keyCode: 99, modifiers: 0)    // F3
         case .quit: Shortcut(keyCode: 12, modifiers: Shortcut.Modifier.command) // ⌘Q
         }
     }
@@ -117,15 +117,23 @@ struct ShortcutSet: Equatable, Sendable {
         return .ok
     }
 
-    /// 서랍 안에서 눌린 키 해석. 입력칸에 글자 커서가 있으면 탭 이동은 하지 않는다(숫자가 글자로 들어가야 함).
+    /// 서랍 안에서 눌린 키 해석. 탭 이동은 커서와 상관없이 동작한다.
+    /// 다만 사용자가 글자·숫자 한 키(수정키 없음)로 바꿨다면, 입력칸에 커서가 있을 땐 글자로 들어가야 하므로 건너뛴다.
     func localAction(keyCode: UInt16, modifiers: UInt32, textFocused: Bool) -> LocalShortcutResult? {
         let pressed = Shortcut(keyCode: UInt32(keyCode), modifiers: modifiers & Shortcut.Modifier.all).normalized
         if pressed == self[.quit] { return .quit }
-        guard !textFocused else { return nil }
         for action in [ShortcutAction.tabNotes, .tabFavorites, .tabSettings] where pressed == self[action] {
+            if textFocused && pressed.typesCharacter { return nil }
             return action.tab.map(LocalShortcutResult.showTab)
         }
         return nil
+    }
+
+    /// 예전 기본값(1·2·3)이 그대로 저장돼 있으면 새 기본값(F1·F2·F3)으로 바꿀 대상
+    static func isOldTabDefault(_ s: Shortcut, for action: ShortcutAction) -> Bool {
+        let old: [ShortcutAction: UInt32] = [.tabNotes: 18, .tabFavorites: 19, .tabSettings: 20]
+        guard let code = old[action] else { return false }
+        return s == Shortcut(keyCode: code, modifiers: 0)
     }
 
     // MARK: 저장 (키 코드 + 수정키를 숫자 하나로)
@@ -144,6 +152,14 @@ extension Shortcut {
     private static let keypadDigits: [UInt32: UInt32] = [
         82: 29, 83: 18, 84: 19, 85: 20, 86: 21, 87: 23, 88: 22, 89: 26, 91: 28, 92: 25,
     ]
+
+    /// 입력칸에서 글자를 넣는 키인지(수정키 없이 또는 ⇧만, 기능 키·화살표 등 제외)
+    var typesCharacter: Bool {
+        if Shortcut.functionKeyCodes.contains(keyCode) { return false }
+        if modifiers & (Modifier.command | Modifier.control | Modifier.option) != 0 { return false }
+        let nonTyping: Set<UInt32> = [123, 124, 125, 126, 115, 119, 116, 121, 117, 51, 36, 48]
+        return !nonTyping.contains(keyCode)
+    }
 
     var normalized: Shortcut {
         guard let row = Shortcut.keypadDigits[keyCode] else { return self }

@@ -1,6 +1,7 @@
+import AppKit
 import SwiftUI
 
-/// 메모/할 일 탭: 위 메모(3), 아래 할 일(2). 둘은 따로 스크롤된다.
+/// 메모/할 일 탭: 위 메모, 아래 할 일(기본 3:2, 사이 손잡이로 조절). 둘은 따로 스크롤된다.
 struct NotesTabView: View {
     @Bindable var model: DrawerModel
     private var store: NotesStore { model.notes }
@@ -20,10 +21,16 @@ struct NotesTabView: View {
     private var spacing: CGFloat { 8 * scale }
     private var rowHeight: CGFloat { 22 * text }
 
+    /// 할 일 쪽 최소: 입력줄 + 구분선 + 할 일 두 줄(입력줄·스플릿 단추가 늘 보이게)
+    private var todoMin: CGFloat { rowHeight * 3 + 6 * scale }
+    private var memoMin: CGFloat { 40 * text }
+
     var body: some View {
-        let split = Layout.memoTodoSplit(total: height, spacing: spacing)
-        VStack(spacing: spacing) {
+        let split = Layout.memoTodoSplit(total: height, spacing: spacing, memoRatio: model.memoRatio,
+                                         memoMin: memoMin, todoMin: todoMin)
+        VStack(spacing: 0) {
             memoBox.frame(height: split.memo)
+            splitHandle(available: max(height - spacing, 1))
             todoBox.frame(height: split.todo)
         }
         .padding(.top, 6 * scale)
@@ -33,6 +40,40 @@ struct NotesTabView: View {
             showClearMenu = false
             confirmClearTodos = false
         }
+    }
+
+    // MARK: 메모·할 일 사이 손잡이
+
+    @State private var splitDragStart: (ratio: Double, mouseY: CGFloat)?
+
+    /// 위아래로 끌어 메모·할 일 크기를 나눈다. 더블클릭하면 기본 3:2.
+    private func splitHandle(available: CGFloat) -> some View {
+        Capsule()
+            .fill(splitDragStart != nil ? Brand.orange.opacity(0.8) : palette.handle)
+            .frame(width: 28 * scale, height: 3 * scale)
+            .frame(maxWidth: .infinity)
+            .frame(height: spacing)
+            .contentShape(Rectangle())
+            .pointerStyle(.frameResize(position: .bottom))
+            .help("끌어서 메모·할 일 크기 나누기 (더블클릭: 3:2)")
+            .onTapGesture(count: 2) {
+                model.memoRatio = Layout.memoRatioDefault
+                UserDefaults.standard.set(model.memoRatio, forKey: SettingsKey.memoRatio)
+            }
+            .gesture(
+                DragGesture(minimumDistance: 1, coordinateSpace: .global)
+                    .onChanged { _ in
+                        let y = NSEvent.mouseLocation.y
+                        if splitDragStart == nil { splitDragStart = (model.memoRatio, y) }
+                        guard let start = splitDragStart else { return }
+                        model.memoRatio = Layout.memoRatioAfterDrag(startRatio: start.ratio, startMouseY: start.mouseY,
+                                                                    currentMouseY: y, available: available)
+                    }
+                    .onEnded { _ in
+                        splitDragStart = nil
+                        UserDefaults.standard.set(model.memoRatio, forKey: SettingsKey.memoRatio)
+                    }
+            )
     }
 
     // MARK: 메모
@@ -132,7 +173,7 @@ struct NotesTabView: View {
                 store.removeCompleted()
             } label: {
                 Text("완료된 일 삭제")
-                    .font(.system(size: 11 * text))
+                    .font(.system(size: DrawerFont.control * text))
                     .foregroundStyle(none ? .secondary : .primary)
                     .padding(.horizontal, 8 * scale)
                     .frame(height: h)

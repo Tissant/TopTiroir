@@ -35,11 +35,14 @@ struct SettingsTabView: View {
 
     private var font: Font { .system(size: 12 * text) }
 
-    /// 글자 크기에 맞춘 팝업·버튼 크기(시안: 작은 컨트롤)
+    /// 단추 글자: 「완료된 일 삭제」와 같은 값(DrawerFont.control × 글자 크기)
+    private var controlFont: Font { .system(size: DrawerFont.control * text) }
+
+    /// 선택 상자(글꼴을 직접 못 정함)는 크기 단계로 맞춘다: small = 11pt. 글자 크기를 줄이면 mini, 키우면 regular.
     private var controlSize: ControlSize {
         switch text {
-        case ..<1.05: .mini
-        case ..<1.35: .small
+        case ..<0.9: .mini
+        case ..<1.2: .small
         default: .regular
         }
     }
@@ -59,7 +62,7 @@ struct SettingsTabView: View {
                     .buttonStyle(.plain)
                     .help("띠 색 고르기 (\(bandColorHex))")
                     if bandColorHex != SettingsDefault.bandColor {
-                        Button("기본") { bandColorHex = SettingsDefault.bandColor }
+                        Button("기본") { bandColorHex = SettingsDefault.bandColor }.font(controlFont)
                     }
                 }
                 row("서랍·창 색상") { drawerColorControl }
@@ -90,12 +93,6 @@ struct SettingsTabView: View {
             }
             Divider()
             section("동작") {
-                row("서랍 열기 단축키") { hotKeyControl }
-                if let message = model.hotKeyMessage {
-                    note(message)
-                } else if model.isRecordingHotKey {
-                    note("새 키를 누르세요. esc를 누르면 취소돼요.")
-                }
                 row("들여쓰기 너비") { indentControl }
                 row("노치에서 열기") {
                     Picker("노치에서 열기", selection: $notchOpenMode) {
@@ -119,6 +116,9 @@ struct SettingsTabView: View {
                     Button(model.shortcutsWindowOpen ? "단축키 닫기" : "단축키 보기…") {
                         model.onToggleShortcutsWindow?()
                     }
+                    .font(font)
+                    
+                    .font(controlFont)
                     .help("쓸 수 있는 단축키를 보고 바꾸는 창을 서랍 옆에 열어요")
                 }
             }
@@ -131,6 +131,7 @@ struct SettingsTabView: View {
                         model.onShowStatusItem?()
                         statusItemShown = true
                     }
+                    .font(controlFont)
                 }
                 row("로그인할 때 자동 실행") {
                     Toggle("로그인할 때 자동 실행", isOn: $loginEnabled)
@@ -150,7 +151,7 @@ struct SettingsTabView: View {
                     HStack(spacing: 6 * scale) {
                         Text("⌘Q").font(font).foregroundStyle(.secondary)
                         // ⌘Q는 서랍이 열려 있으면 어느 탭에서든 동작(DrawerController 키 감시)
-                        Button("종료") { NSApp.terminate(nil) }
+                        Button("종료") { NSApp.terminate(nil) }.font(controlFont)
                     }
                 }
             }
@@ -159,33 +160,6 @@ struct SettingsTabView: View {
         .padding(.horizontal, 6 * scale)
         .padding(.top, 4 * scale)
         .onAppear { refreshLogin() }
-    }
-
-    // MARK: 단축키
-
-    @ViewBuilder private var hotKeyControl: some View {
-        let recording = model.isRecordingHotKey
-        if model.shortcut != .f12 && !recording {
-            Button("초기화") { model.resetHotKey() }
-                .help("기본값 F12로 되돌리기")
-        }
-        Button {
-            recording ? model.finishHotKeyRecording(nil) : model.beginHotKeyRecording()
-        } label: {
-            Text(recording ? "새 키를 누르세요…" : hotKeyTitle)
-                .font(.system(size: 11 * text, weight: .medium))
-                .foregroundStyle(recording ? Color.white : Color.primary)
-                .padding(.horizontal, 6 * scale)
-                .padding(.vertical, 1 * scale)
-                .background(RoundedRectangle(cornerRadius: 4 * scale)
-                    .fill(recording ? AnyShapeStyle(Brand.orange) : AnyShapeStyle(.quaternary)))
-        }
-        .buttonStyle(.plain)
-        .help(recording ? "다시 누르면 취소" : "눌러서 단축키 바꾸기")
-    }
-
-    private var hotKeyTitle: String {
-        model.hotKeyAvailable ? model.shortcut.displayName : "\(model.shortcut.displayName) (다른 앱이 사용 중)"
     }
 
     private func note(_ message: String) -> some View {
@@ -246,6 +220,7 @@ struct SettingsTabView: View {
     private var indentControl: some View {
         HStack(spacing: 4 * scale) {
             Button("+") { setIndent(indentWidth + 1) }
+                .font(controlFont)
                 .disabled(indentWidth >= Indent.widthRange.upperBound)
                 .help("한 칸 늘리기")
             HStack(spacing: 2 * scale) {
@@ -254,12 +229,14 @@ struct SettingsTabView: View {
                     .multilineTextAlignment(.trailing)
                     .font(font.monospacedDigit())
                     .frame(width: 22 * text)
+                    .lineLimit(1)
                     .onSubmit { applyIndentText() }
-                Text("칸").font(font)
+                Text("칸").font(font).fixedSize()
             }
             .padding(.horizontal, 5 * scale)
             .background(RoundedRectangle(cornerRadius: 4 * scale).fill(.quaternary))
             Button("−") { setIndent(indentWidth - 1) }
+                .font(controlFont)
                 .disabled(indentWidth <= Indent.widthRange.lowerBound)
                 .help("한 칸 줄이기")
         }
@@ -307,6 +284,7 @@ struct SettingsTabView: View {
                     clearMessage = nil
                     confirmClear = target
                 }
+                .font(controlFont)
                 .disabled(target == .memo ? model.notes.document.memo.isEmpty : model.notes.document.todos.isEmpty)
             }
         }
@@ -332,13 +310,24 @@ struct SettingsTabView: View {
         .padding(.bottom, 4 * scale)
     }
 
+    /// 한 줄에 안 들어가면(글자가 크고 서랍이 좁을 때) 이름 아래 줄에 오른쪽 맞춰 놓는다.
     private func row<Control: View>(_ label: String, @ViewBuilder control: () -> Control) -> some View {
-        HStack(spacing: 8 * scale) {
-            Text(label).font(font)
-            Spacer(minLength: 8 * scale)
-            control()
+        let c = control()
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 8 * scale) {
+                Text(label).font(font).lineLimit(1).fixedSize()
+                Spacer(minLength: 8 * scale)
+                c.fixedSize()
+            }
+            VStack(alignment: .leading, spacing: 2 * text) {
+                Text(label).font(font).lineLimit(1)
+                HStack {
+                    Spacer(minLength: 0)
+                    c
+                }
+            }
         }
-        .frame(height: 21 * text)
+        .frame(minHeight: 21 * text)
     }
 
     private func toggle(_ binding: Binding<Bool>) -> some View {
@@ -392,7 +381,9 @@ struct PercentSlider: View {
             .frame(width: 120 * scale)
             Text(label(draft ?? stored))
                 .font(font).monospacedDigit()
-                .frame(width: 38 * scale, alignment: .trailing)
+                .lineLimit(1)
+                .fixedSize()
+                .frame(minWidth: 38 * scale, alignment: .trailing)
         }
     }
 

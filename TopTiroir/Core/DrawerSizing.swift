@@ -20,11 +20,32 @@ extension Layout {
         clampedNotesHeight(startHeight + (startMouseY - currentMouseY), maxHeight: maxHeight)
     }
 
-    /// 메모:할 일 = 3:2. 사이 간격을 뺀 나머지를 나눈다.
-    static func memoTodoSplit(total: CGFloat, spacing: CGFloat) -> (memo: CGFloat, todo: CGFloat) {
+    /// 메모 몫(기본 3:2 = 0.6). 사이 손잡이로 20~80% 안에서 바꾼다.
+    static let memoRatioDefault = 0.6
+    static let memoRatioRange: ClosedRange<Double> = 0.2...0.8
+
+    static func clampedMemoRatio(_ value: Double) -> Double {
+        guard value.isFinite else { return memoRatioDefault }
+        return min(max(value, memoRatioRange.lowerBound), memoRatioRange.upperBound)
+    }
+
+    /// 사이 간격(손잡이)을 뺀 나머지를 메모 몫만큼 나눈다. 최소 높이를 주면 양쪽이 그보다 작아지지 않게 한다
+    /// (자리가 모자라면 할 일 쪽 최소를 먼저 지킨다: 입력줄·스플릿 단추가 늘 보이게).
+    static func memoTodoSplit(total: CGFloat, spacing: CGFloat, memoRatio: Double = memoRatioDefault,
+                              memoMin: CGFloat = 0, todoMin: CGFloat = 0) -> (memo: CGFloat, todo: CGFloat) {
         let available = max(total - max(spacing, 0), 0)
-        let memo = (available * 3 / 5).rounded()
+        var memo = (available * CGFloat(clampedMemoRatio(memoRatio))).rounded()
+        memo = min(memo, available - min(todoMin, available))   // 할 일 최소 먼저
+        memo = max(memo, min(memoMin, available - min(todoMin, available)))
+        memo = max(memo, 0)
         return (memo, available - memo)
+    }
+
+    /// 사이 손잡이 끌기: 마우스가 내려간 만큼 메모가 커진다(화면 좌표는 위가 큰 y).
+    static func memoRatioAfterDrag(startRatio: Double, startMouseY: CGFloat, currentMouseY: CGFloat,
+                                   available: CGFloat) -> Double {
+        guard available > 0 else { return clampedMemoRatio(startRatio) }
+        return clampedMemoRatio(startRatio + Double((startMouseY - currentMouseY) / available))
     }
 
     // MARK: 투명도

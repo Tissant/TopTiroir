@@ -39,15 +39,20 @@ struct ShortcutsView: View {
                         ForEach(FixedShortcut.drawer, id: \.title) { fixed($0, palette) }
                         editable(.quit, palette)
                     }
-                    section("탭 이동 (글자 커서가 없을 때)", palette) {
+                    section("탭 이동", palette) {
                         editable(.tabNotes, palette)
                         editable(.tabFavorites, palette)
                         editable(.tabSettings, palette)
+                        Text("기능 키(F1~F12)나 ⌘·⌃ 조합은 언제나 동작해요. 글자·숫자 한 키로 바꾸면 글자 커서가 없을 때만 동작해요(입력칸에선 글자로 들어가요).")
+                            .font(.system(size: 10.5 * t))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, 2 * s)
                     }
                     section("메모·할 일 편집 (바꿀 수 없음)", palette) {
                         ForEach(FixedShortcut.editing, id: \.title) { fixed($0, palette) }
                     }
-                    Text("입력칸이 아닌 곳을 누르면 글자 커서가 빠져서 탭 이동 키를 쓸 수 있어요.")
+                    Text("입력칸이 아닌 곳을 누르면 글자 커서가 빠져요.")
                         .font(.system(size: 10.5 * t))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)

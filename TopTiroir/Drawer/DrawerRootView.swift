@@ -1,6 +1,11 @@
 import AppKit
 import SwiftUI
 
+/// 단추·선택 상자 글자 크기(× 글자 크기 설정). 「완료된 일 삭제」와 설정 탭 단추가 같이 쓴다.
+enum DrawerFont {
+    static let control: CGFloat = 11
+}
+
 enum Brand {
     static let black = Color(red: 11 / 255, green: 12 / 255, blue: 16 / 255)          // #0B0C10
     static let orange = Color(red: 245 / 255, green: 166 / 255, blue: 35 / 255)       // #F5A623
@@ -63,22 +68,19 @@ struct DrawerRootView: View {
         VStack(spacing: 0) {
             BookmarkTabBar(selection: $model.tab, scale: s, text: t, palette: palette)
                 .frame(height: tabBarHeight)
+            // 모든 탭이 같은 길이(손잡이로 정함). 내용이 길면 탭 안에서 스크롤.
+            let contentMax = max(available - 6 * s, 0)
+            let contentHeight = Layout.clampedNotesHeight(model.notesHeight, maxHeight: contentMax)
             if model.tab == .notes {
-                // 메모/할 일: 길이는 손잡이로 정한다(안쪽에서 각자 스크롤).
-                let notesMax = max(available - 6 * s, 0)
-                NotesTabView(model: model,
-                             height: Layout.clampedNotesHeight(model.notesHeight, maxHeight: notesMax),
-                             scale: s, text: t, palette: palette)
-                handle(palette, resizable: true, maxHeight: notesMax)
+                NotesTabView(model: model, height: contentHeight, scale: s, text: t, palette: palette)
             } else {
                 ScrollView {
                     tabContent(palette)
-                        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { model.reportContentHeight($0) }
                 }
                 .scrollBounceBehavior(.basedOnSize)
-                .frame(height: min(model.contentHeight, available))
-                handle(palette, resizable: false, maxHeight: 0)
+                .frame(height: contentHeight + 6 * s)
             }
+            handle(palette, maxHeight: contentMax)
         }
         .opacity(textOpacity)
         .overlay(alignment: .bottom) {
@@ -105,8 +107,8 @@ struct DrawerRootView: View {
         }
     }
 
-    /// 맨 아래 손잡이. 메모/할 일 탭에서는 위아래로 끌어 길이를 바꾸고, 왼쪽에 남은 할 일 수를 보인다.
-    @ViewBuilder private func handle(_ palette: DrawerPalette, resizable: Bool, maxHeight: CGFloat) -> some View {
+    /// 맨 아래 손잡이: 모든 탭에서 위아래로 끌어 서랍 길이를 바꾼다(한 값을 같이 씀). 메모/할 일 탭에선 왼쪽에 남은 할 일 수.
+    @ViewBuilder private func handle(_ palette: DrawerPalette, maxHeight: CGFloat) -> some View {
         let bar = Capsule()
             .fill(dragStart != nil ? Brand.orange.opacity(0.8) : palette.handle)
             .frame(width: 36 * s, height: 4 * s)
@@ -114,7 +116,7 @@ struct DrawerRootView: View {
             .padding(.horizontal, 40 * s)   // 끌 수 있는 범위(가운데만, 왼쪽 글자와 겹치지 않게)
             .contentShape(Rectangle())
         ZStack {
-            if resizable {
+            if model.tab == .notes {
                 HStack {
                     Text(todoCountText)
                         .font(.system(size: 10.5 * t).monospacedDigit())
@@ -123,7 +125,8 @@ struct DrawerRootView: View {
                     Spacer()
                 }
                 .padding(.leading, 6 * s)
-                bar
+            }
+            bar
                     .pointerStyle(.frameResize(position: .bottom))
                     .help("끌어서 길이 바꾸기")
                     .gesture(
@@ -144,9 +147,6 @@ struct DrawerRootView: View {
                                 model.setNotesHeight(model.notesHeight, save: true)
                             }
                     )
-            } else {
-                bar
-            }
         }
         .frame(maxWidth: .infinity)
     }

@@ -10,8 +10,13 @@ final class DrawerModel {
         didSet {
             guard tab != oldValue else { return }
             UserDefaults.standard.set(tab.rawValue, forKey: SettingsKey.lastTab)
+            onTabChanged?(tab)
         }
     }
+    /// 탭이 바뀌면(책갈피·단축키 모두) 불린다: 설정 탭에서 연 보조 창(단축키·색상)을 닫는 데 쓴다.
+    @ObservationIgnored var onTabChanged: ((DrawerTab) -> Void)?
+    /// 메모 몫(메모/할 일 사이 손잡이)
+    var memoRatio: Double = Layout.memoRatioDefault
     var maxHeight: CGFloat = 500
     /// 서랍을 열 때마다 1씩 늘어난다(펼친 목록·확인 줄을 접는 신호).
     var openCount = 0
@@ -43,7 +48,7 @@ final class DrawerModel {
     var shortcutsWindowOpen = false
     @ObservationIgnored var onToggleShortcutsWindow: (() -> Void)?
 
-    /// 서랍 열기 단축키(설정 탭의 줄과 단축키 창이 같은 값을 쓴다)
+    /// 서랍 열기 단축키(단축키 창에서 바꾼다)
     var shortcut: Shortcut {
         get { shortcuts[.openDrawer] }
         set { shortcuts[.openDrawer] = newValue }
@@ -215,9 +220,14 @@ final class DrawerModel {
     func loadShortcuts() {
         let d = UserDefaults.standard
         for action in ShortcutAction.allCases where action != .openDrawer {
-            if d.object(forKey: SettingsKey.shortcut(action)) != nil {
-                shortcuts[action] = ShortcutSet.unpack(d.integer(forKey: SettingsKey.shortcut(action)),
-                                                       fallback: action.defaultShortcut)
+            guard d.object(forKey: SettingsKey.shortcut(action)) != nil else { continue }
+            let stored = ShortcutSet.unpack(d.integer(forKey: SettingsKey.shortcut(action)), fallback: action.defaultShortcut)
+            if ShortcutSet.isOldTabDefault(stored, for: action) {
+                // v0.2.2 기본값(1·2·3)이 그대로면 새 기본값(F1·F2·F3)으로. 직접 바꾼 값은 그대로 둔다.
+                shortcuts[action] = action.defaultShortcut
+                d.removeObject(forKey: SettingsKey.shortcut(action))
+            } else {
+                shortcuts[action] = stored
             }
         }
     }
@@ -248,6 +258,11 @@ final class DrawerController {
         shortcutsPanel.contentView = shortcutsHosting
         shortcutsPanel.level = NSWindow.Level(rawValue: panel.level.rawValue + 1)
         model.onToggleShortcutsWindow = { [weak self] in self?.toggleShortcutsWindow() }
+        model.onTabChanged = { [weak self] tab in
+            // 설정 탭에서 연 보조 창은 다른 탭으로 가면 닫는다(돌아와도 다시 열지 않음).
+            guard tab != .settings else { return }
+            self?.closeAuxiliaryWindows()
+        }
         model.onLayoutChange = { [weak self] in
             DispatchQueue.main.async { self?.relayoutIfOpen() }
         }
@@ -268,6 +283,7 @@ final class DrawerController {
             let mode = OpenTabMode(rawValue: defaults.string(forKey: SettingsKey.openTabMode) ?? "") ?? .last
             model.tab = mode.tab(lastTab: defaults.string(forKey: SettingsKey.lastTab))
             model.notesHeight = CGFloat(defaults.double(forKey: SettingsKey.notesHeight))
+            model.memoRatio = Layout.clampedMemoRatio(defaults.double(forKey: SettingsKey.memoRatio))
         }
         screen = s
         model.maxHeight = Layout.maxDrawerHeight(screenFrame: s.frame)
@@ -289,8 +305,7 @@ final class DrawerController {
         guard model.prepareToLeave(.close) else { return }
         model.finishRecording(nil)
         panel.orderOut(nil)
-        hideShortcutsWindow()
-        BandColorPanel.shared.close()
+        closeAuxiliaryWindows()
         removeMonitors()
         model.notes.saveNow()
     }
@@ -332,6 +347,12 @@ final class DrawerController {
         model.shortcutsWindowOpen = true
         placeShortcutsWindow()
         shortcutsPanel.orderFrontRegardless()
+    }
+
+    /// 설정 탭에 딸린 보조 창(단축키 창, 띠 색·서랍 색 색상 창). 나중 보조 창도 여기에 더한다.
+    private func closeAuxiliaryWindows() {
+        hideShortcutsWindow()
+        BandColorPanel.shared.close()
     }
 
     private func hideShortcutsWindow() {

@@ -125,6 +125,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             SettingsKey.openTabMode: SettingsDefault.openTabMode,
             SettingsKey.lastTab: SettingsDefault.lastTab,
             SettingsKey.notesHeight: SettingsDefault.notesHeight,
+            SettingsKey.memoRatio: SettingsDefault.memoRatio,
             SettingsKey.hotKeyCode: SettingsDefault.hotKeyCode,
             SettingsKey.hotKeyModifiers: SettingsDefault.hotKeyModifiers,
         ])

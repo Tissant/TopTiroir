@@ -10,6 +10,7 @@
 		0BF4CBC873CDEDC4E066875B /* HotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B74B6949289544EE2A2EFDD /* HotKey.swift */; };
 		1DA53E10F2911C5852D4ECC9 /* BandColorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB6D1B0D0C1CD95B4D2B72E2 /* BandColorPanel.swift */; };
 		1FBB95470C8BE0ECA965EB36 /* NotesData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CAAD9B3594C51D679A2387 /* NotesData.swift */; };
+		257701908D3CD0F7A5C5F336 /* V023Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F04A0625AE172265BF09FD7 /* V023Tests.swift */; };
 		2736AFCE82CBB031030158D4 /* MemoTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A18CE8CBCF7DAA09E210BCB /* MemoTextView.swift */; };
 		2B60FEC00216899B83DDD116 /* ShortcutSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756E606FBC614AF38F29A5BE /* ShortcutSet.swift */; };
 		2BCB7CE3BB078474FB327828 /* V02Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34E4BAABA38B35F6E5F9173B /* V02Tests.swift */; };
@@ -54,6 +55,7 @@
 		003F7963AE169C1FE045AB9E /* LayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutTests.swift; sourceTree = "<group>"; };
 		0B66F5B50C2E160DD1808326 /* NotesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesStore.swift; sourceTree = "<group>"; };
 		10D5D4D2041447DC39BE6008 /* ShortcutsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsView.swift; sourceTree = "<group>"; };
+		1F04A0625AE172265BF09FD7 /* V023Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V023Tests.swift; sourceTree = "<group>"; };
 		2A18CE8CBCF7DAA09E210BCB /* MemoTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoTextView.swift; sourceTree = "<group>"; };
 		2B9610464627D9B3A77D4911 /* ScreenDecorations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenDecorations.swift; sourceTree = "<group>"; };
 		2E462402B2A4CF5C85EE793A /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
@@ -124,6 +126,7 @@
 				34E4BAABA38B35F6E5F9173B /* V02Tests.swift */,
 				EA71A9FFAA3633F1A8C9E059 /* V021Tests.swift */,
 				B7CAEF9327E2CE970662A968 /* V022Tests.swift */,
+				1F04A0625AE172265BF09FD7 /* V023Tests.swift */,
 			);
 			path = TopTiroirTests;
 			sourceTree = "<group>";
@@ -339,6 +342,7 @@
 				C6E3BD3C1D1E1650C7E9A65A /* ShortcutSet.swift in Sources */,
 				73B58942CFC10AF0D160FE46 /* V021Tests.swift in Sources */,
 				B372548859B7D1F9960F204F /* V022Tests.swift in Sources */,
+				257701908D3CD0F7A5C5F336 /* V023Tests.swift in Sources */,
 				2BCB7CE3BB078474FB327828 /* V02Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -414,7 +418,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
@@ -436,7 +440,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.2.2;
+				MARKETING_VERSION = 0.2.3;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -516,7 +520,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
@@ -532,7 +536,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.2.2;
+				MARKETING_VERSION = 0.2.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

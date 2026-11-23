@@ -15,7 +15,8 @@ enum SettingsKey {
     static let textOpacity = "textOpacity"
     static let openTabMode = "openTabMode"
     static let lastTab = "lastTab"
-    static let notesHeight = "notesHeight"
+    static let notesHeight = "notesHeight"   // v0.2.2부터 모든 탭이 같이 쓰는 서랍 내용 높이
+    static let memoRatio = "memoRatio"
     static let hotKeyCode = "hotKeyCode"
     static let hotKeyModifiers = "hotKeyModifiers"
 
@@ -40,6 +41,7 @@ enum SettingsDefault {
     static let openTabMode = OpenTabMode.last.rawValue
     static let lastTab = DrawerTab.notes.rawValue
     static let notesHeight = Double(Layout.notesDefaultHeight)
+    static let memoRatio = Layout.memoRatioDefault
     static let hotKeyCode = Int(Shortcut.f12.keyCode)
     static let hotKeyModifiers = Int(Shortcut.f12.modifiers)
 }
