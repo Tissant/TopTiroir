@@ -1,0 +1,14 @@
+# 빌드 결과물
+build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+xcuserdata/
+# macOS
+.DS_Store
+# 개인 문서
+CLAUDE.md
+인계메모_*.md
+# 아이콘 시안: 원본·브랜드 가이드만 커밋 (zip·미리보기 제외)
+APP Name:Icon Concept/*.zip
+APP Name:Icon Concept/**/preview.png
