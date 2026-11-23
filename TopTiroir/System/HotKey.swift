@@ -5,32 +5,47 @@ import Carbon.HIToolbox
 final class HotKey {
     private static var current: HotKey?
 
-    private let keyCode: UInt32
     private let action: () -> Void
     private var hotKeyRef: EventHotKeyRef?
     private var handlerRef: EventHandlerRef?
+    /// 지금 등록된 단축키(없으면 nil)
+    private(set) var registered: Shortcut?
 
-    init(keyCode: UInt32, action: @escaping () -> Void) {
-        self.keyCode = keyCode
+    init(action: @escaping () -> Void) {
         self.action = action
     }
 
-    /// 성공하면 true. 다른 앱이 같은 키를 이미 쓰고 있으면 false.
+    /// 성공하면 true. 다른 앱이 같은 키를 이미 쓰고 있거나 macOS가 막으면 false(이때는 아무 키도 등록되지 않은 상태).
     @discardableResult
-    func register() -> Bool {
+    func register(_ shortcut: Shortcut) -> Bool {
+        unregister()
+        guard installHandlerIfNeeded() else { return false }
+        let id = EventHotKeyID(signature: OSType(0x5454_5452), id: 1) // 'TTTR'
+        let status = RegisterEventHotKey(shortcut.keyCode, shortcut.modifiers, id,
+                                         GetApplicationEventTarget(), 0, &hotKeyRef)
+        guard status == noErr else {
+            hotKeyRef = nil
+            return false
+        }
+        registered = shortcut
+        return true
+    }
+
+    func unregister() {
+        if let ref = hotKeyRef { UnregisterEventHotKey(ref) }
+        hotKeyRef = nil
+        registered = nil
+    }
+
+    private func installHandlerIfNeeded() -> Bool {
+        if handlerRef != nil { return true }
         HotKey.current = self
         var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-        let installStatus = InstallEventHandler(GetApplicationEventTarget(), { _, _, _ in
+        let status = InstallEventHandler(GetApplicationEventTarget(), { _, _, _ in
             // Carbon은 메인 스레드에서 이 함수를 부른다.
             MainActor.assumeIsolated { HotKey.current?.action() }
             return noErr
         }, 1, &spec, nil, &handlerRef)
-        guard installStatus == noErr else { return false }
-
-        let id = EventHotKeyID(signature: OSType(0x5454_5452), id: 1) // 'TTTR'
-        let status = RegisterEventHotKey(keyCode, 0, id, GetApplicationEventTarget(), 0, &hotKeyRef)
         return status == noErr
     }
-
-    static let f12 = UInt32(kVK_F12)
 }

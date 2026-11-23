@@ -9,16 +9,25 @@
 /* Begin PBXBuildFile section */
 		0BF4CBC873CDEDC4E066875B /* HotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B74B6949289544EE2A2EFDD /* HotKey.swift */; };
 		1DA53E10F2911C5852D4ECC9 /* BandColorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB6D1B0D0C1CD95B4D2B72E2 /* BandColorPanel.swift */; };
+		1FBB95470C8BE0ECA965EB36 /* NotesData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CAAD9B3594C51D679A2387 /* NotesData.swift */; };
+		2BCB7CE3BB078474FB327828 /* V02Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34E4BAABA38B35F6E5F9173B /* V02Tests.swift */; };
 		3989B811B961AF49D8409F96 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 762D246C485F0328F84EDF49 /* Assets.xcassets */; };
+		593C2987E72464FE340F8BA6 /* DrawerTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E87107AB9AF1BF46DCE1FF7 /* DrawerTab.swift */; };
 		63D929C3C4B57FC244D40FBC /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BB8608DDEB7320413593E45 /* Layout.swift */; };
 		687E32CA1D73A51D2E0F5262 /* SettingsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C5153CE28F64E8AEDC1AE21 /* SettingsKeys.swift */; };
+		708CD1E1A0A49BFC72475250 /* Shortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EBC25EEB88270002AA48674 /* Shortcut.swift */; };
+		7C353473763C1B86860419BD /* DrawerTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E87107AB9AF1BF46DCE1FF7 /* DrawerTab.swift */; };
 		7EC24E1141D229729277EAF8 /* LoginItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCA180A563F082E147D36943 /* LoginItem.swift */; };
 		9038C8B78E6B2D386276CF72 /* DrawerRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F2F30A5B034B0D914CC3B1 /* DrawerRootView.swift */; };
 		92B00BCA2430BD9D28AB055D /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837E36546438827FF3EEB71F /* main.swift */; };
 		92D8046B640BFFCC7F94E23F /* SettingsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C5153CE28F64E8AEDC1AE21 /* SettingsKeys.swift */; };
+		9468F3FA1D0C4999366D4831 /* DrawerSizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA2784087280F846FB4FC7C /* DrawerSizing.swift */; };
 		9D66425FF6B0840BAB451B08 /* LayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 003F7963AE169C1FE045AB9E /* LayoutTests.swift */; };
+		A18BA29BA98E75EC9974696B /* NotesTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BBF61452C3A394082E7E17C /* NotesTabView.swift */; };
 		A3DF903B2A88D55415349130 /* TemporaryStatusItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504529CB1FDE9A5009B8CCBE /* TemporaryStatusItem.swift */; };
+		AB9FD501692DCB6159A52BB0 /* NotesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B66F5B50C2E160DD1808326 /* NotesStore.swift */; };
 		AF8B5FD6B14673BAA0EC8EF3 /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E462402B2A4CF5C85EE793A /* SettingsTabView.swift */; };
+		BEEC84F7DFAB16CB7658F413 /* NotesData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CAAD9B3594C51D679A2387 /* NotesData.swift */; };
 		C477A34B8B004BDCB8642488 /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BB8608DDEB7320413593E45 /* Layout.swift */; };
 		C83140B4116822341431967D /* NotchHotspot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D6F76AB5EDA9B217D73CC1 /* NotchHotspot.swift */; };
 		CA5B8B391343CCAE2FFF36A2 /* HexColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2CBD04DAFA8EC898B3A292A /* HexColor.swift */; };
@@ -27,26 +36,35 @@
 		D66FFC0EBBEFC8CB453D16EB /* ScreenDecorations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9610464627D9B3A77D4911 /* ScreenDecorations.swift */; };
 		DB8248E056F60EE1FE84C6A6 /* DrawerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC57612D92F3A208A63E6029 /* DrawerController.swift */; };
 		E0838C2CC5739A42981BE78A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA38F9DA2F5F8A52D041181A /* AppDelegate.swift */; };
+		EB9CB0D5702911E53B9712F9 /* DrawerSizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA2784087280F846FB4FC7C /* DrawerSizing.swift */; };
+		FC46FDC7701340A60498B593 /* Shortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EBC25EEB88270002AA48674 /* Shortcut.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		003F7963AE169C1FE045AB9E /* LayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutTests.swift; sourceTree = "<group>"; };
+		0B66F5B50C2E160DD1808326 /* NotesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesStore.swift; sourceTree = "<group>"; };
 		2B9610464627D9B3A77D4911 /* ScreenDecorations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenDecorations.swift; sourceTree = "<group>"; };
 		2E462402B2A4CF5C85EE793A /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
+		34E4BAABA38B35F6E5F9173B /* V02Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V02Tests.swift; sourceTree = "<group>"; };
+		4E87107AB9AF1BF46DCE1FF7 /* DrawerTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawerTab.swift; sourceTree = "<group>"; };
 		504529CB1FDE9A5009B8CCBE /* TemporaryStatusItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryStatusItem.swift; sourceTree = "<group>"; };
 		523FC1C1ADC6E9A994322AFA /* TopTiroirTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TopTiroirTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6B74B6949289544EE2A2EFDD /* HotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKey.swift; sourceTree = "<group>"; };
 		6BB8608DDEB7320413593E45 /* Layout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Layout.swift; sourceTree = "<group>"; };
+		6BBF61452C3A394082E7E17C /* NotesTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesTabView.swift; sourceTree = "<group>"; };
 		762D246C485F0328F84EDF49 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7CA2784087280F846FB4FC7C /* DrawerSizing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawerSizing.swift; sourceTree = "<group>"; };
 		837E36546438827FF3EEB71F /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		93D6F76AB5EDA9B217D73CC1 /* NotchHotspot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchHotspot.swift; sourceTree = "<group>"; };
 		9C5153CE28F64E8AEDC1AE21 /* SettingsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsKeys.swift; sourceTree = "<group>"; };
+		9EBC25EEB88270002AA48674 /* Shortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shortcut.swift; sourceTree = "<group>"; };
 		B4F2F30A5B034B0D914CC3B1 /* DrawerRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawerRootView.swift; sourceTree = "<group>"; };
 		BA38F9DA2F5F8A52D041181A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		BB0A81DC1CF1DFB8F23166C4 /* ScreenInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenInfo.swift; sourceTree = "<group>"; };
 		BCA180A563F082E147D36943 /* LoginItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItem.swift; sourceTree = "<group>"; };
 		BCE5052EC43299B08D8561B2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C2CBD04DAFA8EC898B3A292A /* HexColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexColor.swift; sourceTree = "<group>"; };
+		D3CAAD9B3594C51D679A2387 /* NotesData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesData.swift; sourceTree = "<group>"; };
 		DAC76D57E4C3859D4B03AB53 /* TopTiroir.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TopTiroir.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC57612D92F3A208A63E6029 /* DrawerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawerController.swift; sourceTree = "<group>"; };
 		FB6D1B0D0C1CD95B4D2B72E2 /* BandColorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BandColorPanel.swift; sourceTree = "<group>"; };
@@ -63,6 +81,15 @@
 			path = Screen;
 			sourceTree = "<group>";
 		};
+		0E0A0B3127CCB06213403540 /* Notes */ = {
+			isa = PBXGroup;
+			children = (
+				0B66F5B50C2E160DD1808326 /* NotesStore.swift */,
+				6BBF61452C3A394082E7E17C /* NotesTabView.swift */,
+			);
+			path = Notes;
+			sourceTree = "<group>";
+		};
 		1A756768481A0113AF91B34B /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -76,6 +103,7 @@
 			isa = PBXGroup;
 			children = (
 				003F7963AE169C1FE045AB9E /* LayoutTests.swift */,
+				34E4BAABA38B35F6E5F9173B /* V02Tests.swift */,
 			);
 			path = TopTiroirTests;
 			sourceTree = "<group>";
@@ -83,9 +111,13 @@
 		4FC54BD6150F620700777DE7 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				7CA2784087280F846FB4FC7C /* DrawerSizing.swift */,
+				4E87107AB9AF1BF46DCE1FF7 /* DrawerTab.swift */,
 				C2CBD04DAFA8EC898B3A292A /* HexColor.swift */,
 				6BB8608DDEB7320413593E45 /* Layout.swift */,
+				D3CAAD9B3594C51D679A2387 /* NotesData.swift */,
 				9C5153CE28F64E8AEDC1AE21 /* SettingsKeys.swift */,
+				9EBC25EEB88270002AA48674 /* Shortcut.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -128,6 +160,7 @@
 				982B2681DA9DDE6456F712F0 /* App */,
 				4FC54BD6150F620700777DE7 /* Core */,
 				AB1E306A3DB4797CE0BAE6E3 /* Drawer */,
+				0E0A0B3127CCB06213403540 /* Notes */,
 				02FB111614D970A676D776E1 /* Screen */,
 				66373C8C5DC44B5651CD1E2C /* System */,
 			);
@@ -240,15 +273,21 @@
 				1DA53E10F2911C5852D4ECC9 /* BandColorPanel.swift in Sources */,
 				DB8248E056F60EE1FE84C6A6 /* DrawerController.swift in Sources */,
 				9038C8B78E6B2D386276CF72 /* DrawerRootView.swift in Sources */,
+				EB9CB0D5702911E53B9712F9 /* DrawerSizing.swift in Sources */,
+				593C2987E72464FE340F8BA6 /* DrawerTab.swift in Sources */,
 				CA5B8B391343CCAE2FFF36A2 /* HexColor.swift in Sources */,
 				0BF4CBC873CDEDC4E066875B /* HotKey.swift in Sources */,
 				C477A34B8B004BDCB8642488 /* Layout.swift in Sources */,
 				7EC24E1141D229729277EAF8 /* LoginItem.swift in Sources */,
 				C83140B4116822341431967D /* NotchHotspot.swift in Sources */,
+				BEEC84F7DFAB16CB7658F413 /* NotesData.swift in Sources */,
+				AB9FD501692DCB6159A52BB0 /* NotesStore.swift in Sources */,
+				A18BA29BA98E75EC9974696B /* NotesTabView.swift in Sources */,
 				D66FFC0EBBEFC8CB453D16EB /* ScreenDecorations.swift in Sources */,
 				D412CEA7E8B4A0AD2ECA4A80 /* ScreenInfo.swift in Sources */,
 				687E32CA1D73A51D2E0F5262 /* SettingsKeys.swift in Sources */,
 				AF8B5FD6B14673BAA0EC8EF3 /* SettingsTabView.swift in Sources */,
+				708CD1E1A0A49BFC72475250 /* Shortcut.swift in Sources */,
 				A3DF903B2A88D55415349130 /* TemporaryStatusItem.swift in Sources */,
 				92B00BCA2430BD9D28AB055D /* main.swift in Sources */,
 			);
@@ -258,10 +297,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9468F3FA1D0C4999366D4831 /* DrawerSizing.swift in Sources */,
+				7C353473763C1B86860419BD /* DrawerTab.swift in Sources */,
 				CE4D3EBE3C6354D5C27A3A7B /* HexColor.swift in Sources */,
 				63D929C3C4B57FC244D40FBC /* Layout.swift in Sources */,
 				9D66425FF6B0840BAB451B08 /* LayoutTests.swift in Sources */,
+				1FBB95470C8BE0ECA965EB36 /* NotesData.swift in Sources */,
 				92D8046B640BFFCC7F94E23F /* SettingsKeys.swift in Sources */,
+				FC46FDC7701340A60498B593 /* Shortcut.swift in Sources */,
+				2BCB7CE3BB078474FB327828 /* V02Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -336,7 +380,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
@@ -358,7 +402,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -438,7 +482,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
@@ -454,7 +498,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

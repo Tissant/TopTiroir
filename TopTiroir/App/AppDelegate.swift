@@ -23,9 +23,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        let key = HotKey(keyCode: HotKey.f12) { [weak self] in self?.drawer.toggle() }
-        drawer.model.hotKeyAvailable = key.register()
-        hotKey = key
+        setUpHotKey()
+        drawer.model.onPendingResolved = { [weak self] action, proceed in
+            switch action {
+            case .close: if proceed { self?.drawer.close() }
+            case .quit: NSApp.reply(toApplicationShouldTerminate: proceed)
+            }
+        }
 
         let center = NotificationCenter.default
         center.addObserver(self, selector: #selector(screensChanged),
@@ -42,7 +46,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
+    /// 할 일을 고치는 중이고 바뀐 내용이 있으면, 서랍의 저장 확인 줄에서 답할 때까지 종료를 미룬다.
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if drawer.model.prepareToLeave(.quit) { return .terminateNow }
+        drawer.open()
+        return .terminateLater
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
+        drawer.model.notes.saveNow()
         decorations.removeAll()
         statusItem.hide()
     }
@@ -62,6 +74,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hotspot.update()
     }
 
+    // MARK: 단축키
+
+    private func setUpHotKey() {
+        let defaults = UserDefaults.standard
+        let model = drawer.model
+        let key = HotKey { [weak self] in self?.drawer.toggle() }
+        hotKey = key
+        model.shortcut = Shortcut.stored(keyCode: defaults.integer(forKey: SettingsKey.hotKeyCode),
+                                         modifiers: defaults.integer(forKey: SettingsKey.hotKeyModifiers))
+        model.hotKeyAvailable = key.register(model.shortcut)
+
+        // 바꾸는 동안에는 지금 키를 풀어 둬야 그 키도 새 키로 받을 수 있다.
+        model.onBeginHotKeyRecording = { key.unregister() }
+        model.onCancelHotKeyRecording = { [weak model] in
+            guard let model else { return }
+            model.hotKeyAvailable = key.register(model.shortcut)
+        }
+        model.onApplyHotKey = { [weak model] new in
+            guard let model else { return false }
+            if key.register(new) {
+                model.shortcut = new
+                model.hotKeyAvailable = true
+                defaults.set(Int(new.keyCode), forKey: SettingsKey.hotKeyCode)
+                defaults.set(Int(new.modifiers), forKey: SettingsKey.hotKeyModifiers)
+                return true
+            }
+            // 실패: 이전 키를 다시 등록한다.
+            model.hotKeyAvailable = key.register(model.shortcut)
+            return false
+        }
+    }
+
     private func registerDefaults() {
         UserDefaults.standard.register(defaults: [
             SettingsKey.hideNotch: SettingsDefault.hideNotch,
@@ -70,6 +114,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             SettingsKey.drawerScale: SettingsDefault.drawerScale,
             SettingsKey.notchOpenMode: SettingsDefault.notchOpenMode,
             SettingsKey.closeMode: SettingsDefault.closeMode,
+            SettingsKey.drawerOpacity: SettingsDefault.drawerOpacity,
+            SettingsKey.openTabMode: SettingsDefault.openTabMode,
+            SettingsKey.lastTab: SettingsDefault.lastTab,
+            SettingsKey.notesHeight: SettingsDefault.notesHeight,
+            SettingsKey.hotKeyCode: SettingsDefault.hotKeyCode,
+            SettingsKey.hotKeyModifiers: SettingsDefault.hotKeyModifiers,
         ])
     }
 }

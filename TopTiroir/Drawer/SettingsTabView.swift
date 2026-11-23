@@ -4,7 +4,10 @@ import SwiftUI
 /// 설정 탭: 화면 / 동작 / 관리 세 구역
 struct SettingsTabView: View {
     let model: DrawerModel
+    /// 창 크기 비율(폭·여백·컨트롤 폭)
     let scale: CGFloat
+    /// 글자 크기 비율(글자·줄 높이·작은 컨트롤)
+    let text: CGFloat
     let palette: DrawerPalette
 
     @AppStorage(SettingsKey.hideNotch) private var hideNotch = SettingsDefault.hideNotch
@@ -13,17 +16,23 @@ struct SettingsTabView: View {
     @AppStorage(SettingsKey.drawerScale) private var drawerScale = SettingsDefault.drawerScale
     @AppStorage(SettingsKey.notchOpenMode) private var notchOpenMode = SettingsDefault.notchOpenMode
     @AppStorage(SettingsKey.closeMode) private var closeMode = SettingsDefault.closeMode
+    @AppStorage(SettingsKey.drawerOpacity) private var drawerOpacity = SettingsDefault.drawerOpacity
+    @AppStorage(SettingsKey.openTabMode) private var openTabMode = SettingsDefault.openTabMode
+    @AppStorage(SettingsKey.textScale) private var textScale = SettingsDefault.textScale
+    @AppStorage(SettingsKey.textOpacity) private var textOpacity = SettingsDefault.textOpacity
 
-    @State private var scaleDraft: Double?
+    /// 비우기 확인 중인 대상
+    @State private var confirmClear: ClearTarget?
+    @State private var clearMessage: String?
     @State private var loginEnabled = LoginItem.isEnabled
     @State private var loginMessage: String?
     @State private var statusItemShown = false
 
-    private var font: Font { .system(size: 12 * scale) }
+    private var font: Font { .system(size: 12 * text) }
 
-    /// 크기 비율에 맞춘 팝업·버튼 크기(시안: 작은 컨트롤)
+    /// 글자 크기에 맞춘 팝업·버튼 크기(시안: 작은 컨트롤)
     private var controlSize: ControlSize {
-        switch scale {
+        switch text {
         case ..<1.05: .mini
         case ..<1.35: .small
         default: .regular
@@ -48,34 +57,48 @@ struct SettingsTabView: View {
                         Button("기본") { bandColorHex = SettingsDefault.bandColor }
                     }
                 }
+                row("글자 크기") {
+                    PercentSlider(stored: $textScale, range: Layout.scaleRange, step: 0.1,
+                                  clamp: Layout.clampedScale, label: Layout.percentText,
+                                  scale: scale, font: font)
+                }
                 row("서랍·창 크기") {
-                    HStack(spacing: 6 * scale) {
-                        Slider(value: scaleBinding, in: Layout.scaleRange, step: 0.1) { editing in
-                            if !editing, let d = scaleDraft {
-                                drawerScale = Layout.clampedScale(d)
-                                scaleDraft = nil
-                            }
-                        }
-                        .tint(Brand.orange)
-                        .frame(width: 120 * scale)
-                        Text(Layout.percentText(scaleDraft ?? drawerScale))
-                            .font(font).monospacedDigit()
-                            .frame(width: 38 * scale, alignment: .trailing)
-                    }
+                    PercentSlider(stored: $drawerScale, range: Layout.scaleRange, step: 0.1,
+                                  clamp: Layout.clampedScale, label: Layout.percentText,
+                                  scale: scale, font: font)
+                }
+                row("글자 투명도") {
+                    PercentSlider(stored: $textOpacity, range: Layout.textOpacityRange, step: 0.05,
+                                  clamp: { Layout.clampedOpacity($0, range: Layout.textOpacityRange) },
+                                  label: { Layout.opacityPercentText($0, range: Layout.textOpacityRange) },
+                                  scale: scale, font: font,
+                                  onPreview: { model.textOpacityPreview = $0 })
+                }
+                row("서랍·창 투명도") {
+                    PercentSlider(stored: $drawerOpacity, range: Layout.windowOpacityRange, step: 0.05,
+                                  clamp: { Layout.clampedOpacity($0, range: Layout.windowOpacityRange) },
+                                  label: { Layout.opacityPercentText($0, range: Layout.windowOpacityRange) },
+                                  scale: scale, font: font,
+                                  onPreview: { model.windowOpacityPreview = $0 })
                 }
             }
             Divider()
             section("동작") {
-                row("서랍 열기 단축키") {
-                    Text(model.hotKeyAvailable ? "F12" : "F12 (다른 앱이 사용 중)")
-                        .font(.system(size: 11 * scale, weight: .medium))
-                        .padding(.horizontal, 6 * scale)
-                        .padding(.vertical, 1 * scale)
-                        .background(RoundedRectangle(cornerRadius: 4 * scale).fill(.quaternary))
+                row("서랍 열기 단축키") { hotKeyControl }
+                if let message = model.hotKeyMessage {
+                    note(message)
+                } else if model.isRecordingHotKey {
+                    note("새 키를 누르세요. esc를 누르면 취소돼요.")
                 }
                 row("노치에서 열기") {
                     Picker("노치에서 열기", selection: $notchOpenMode) {
                         ForEach(NotchOpenMode.allCases, id: \.rawValue) { Text($0.title).tag($0.rawValue) }
+                    }
+                    .labelsHidden().pickerStyle(.menu).fixedSize()
+                }
+                row("열 때 보여 줄 탭") {
+                    Picker("열 때 보여 줄 탭", selection: $openTabMode) {
+                        ForEach(OpenTabMode.allCases, id: \.rawValue) { Text($0.title).tag($0.rawValue) }
                     }
                     .labelsHidden().pickerStyle(.menu).fixedSize()
                 }
@@ -88,6 +111,9 @@ struct SettingsTabView: View {
             }
             Divider()
             section("관리") {
+                clearRow(.memo)
+                clearRow(.todos)
+                if let clearMessage { note(clearMessage) }
                 row("메뉴막대 아이콘 잠깐 보이기") {
                     Button(statusItemShown ? "60초 동안 보임" : "보이기") {
                         model.onShowStatusItem?()
@@ -96,12 +122,12 @@ struct SettingsTabView: View {
                 }
                 row("로그인할 때 자동 실행") {
                     Toggle("로그인할 때 자동 실행", isOn: $loginEnabled)
-                        .labelsHidden().toggleStyle(OrangeSwitchStyle(scale: scale))
+                        .labelsHidden().toggleStyle(OrangeSwitchStyle(scale: text))
                         .onChange(of: loginEnabled) { _, newValue in setLogin(newValue) }
                 }
                 if let loginMessage {
                     Text(loginMessage)
-                        .font(.system(size: 11 * scale))
+                        .font(.system(size: 11 * text))
                         .foregroundStyle(.secondary)
                         .padding(.bottom, 2 * scale)
                 }
@@ -109,9 +135,11 @@ struct SettingsTabView: View {
                     Text("버전 \(Self.version)").font(font).foregroundStyle(.secondary)
                 }
                 row("TopTiroir 종료") {
-                    Button("종료") { NSApp.terminate(nil) }
-                        .keyboardShortcut("q", modifiers: .command)
-                        .help("⌘Q")
+                    HStack(spacing: 6 * scale) {
+                        Text("⌘Q").font(font).foregroundStyle(.secondary)
+                        // ⌘Q는 서랍이 열려 있으면 어느 탭에서든 동작(DrawerController 키 감시)
+                        Button("종료") { NSApp.terminate(nil) }
+                    }
                 }
             }
         }
@@ -121,12 +149,86 @@ struct SettingsTabView: View {
         .onAppear { refreshLogin() }
     }
 
+    // MARK: 단축키
+
+    @ViewBuilder private var hotKeyControl: some View {
+        let recording = model.isRecordingHotKey
+        if model.shortcut != .f12 && !recording {
+            Button("초기화") { model.resetHotKey() }
+                .help("기본값 F12로 되돌리기")
+        }
+        Button {
+            recording ? model.finishHotKeyRecording(nil) : model.beginHotKeyRecording()
+        } label: {
+            Text(recording ? "새 키를 누르세요…" : hotKeyTitle)
+                .font(.system(size: 11 * text, weight: .medium))
+                .foregroundStyle(recording ? Color.white : Color.primary)
+                .padding(.horizontal, 6 * scale)
+                .padding(.vertical, 1 * scale)
+                .background(RoundedRectangle(cornerRadius: 4 * scale)
+                    .fill(recording ? AnyShapeStyle(Brand.orange) : AnyShapeStyle(.quaternary)))
+        }
+        .buttonStyle(.plain)
+        .help(recording ? "다시 누르면 취소" : "눌러서 단축키 바꾸기")
+    }
+
+    private var hotKeyTitle: String {
+        model.hotKeyAvailable ? model.shortcut.displayName : "\(model.shortcut.displayName) (다른 앱이 사용 중)"
+    }
+
+    private func note(_ message: String) -> some View {
+        Text(message)
+            .font(.system(size: 11 * text))
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.bottom, 2 * scale)
+    }
+
+    // MARK: 비우기
+
+    enum ClearTarget { case memo, todos }
+
+    /// 「비우기」 → 그 자리에 확인 줄(무엇을 지우는지, 되돌릴 수 없음) → 「비우기」를 한 번 더 눌러야 지운다.
+    @ViewBuilder private func clearRow(_ target: ClearTarget) -> some View {
+        let title = target == .memo ? "메모장 비우기" : "할 일 비우기"
+        if confirmClear == target {
+            VStack(alignment: .leading, spacing: 4 * text) {
+                Text(target == .memo
+                     ? "메모 글을 모두 지울까요? 되돌릴 수 없어요."
+                     : "할 일 \(model.notes.document.todos.count)개를 모두 지울까요? 되돌릴 수 없어요.")
+                    .font(.system(size: 11.5 * text, weight: .semibold))
+                HStack {
+                    Spacer()
+                    Button("취소") { confirmClear = nil }
+                    Button("비우기", role: .destructive) { clear(target) }
+                }
+            }
+            .padding(6 * scale)
+            .background(RoundedRectangle(cornerRadius: 6 * scale).fill(Color.red.opacity(0.10)))
+            .padding(.vertical, 2 * text)
+        } else {
+            row(title) {
+                Button("비우기") {
+                    clearMessage = nil
+                    confirmClear = target
+                }
+                .disabled(target == .memo ? model.notes.document.memo.isEmpty : model.notes.document.todos.isEmpty)
+            }
+        }
+    }
+
+    private func clear(_ target: ClearTarget) {
+        confirmClear = nil
+        let ok = target == .memo ? model.notes.clearMemo() : model.notes.clearTodos()
+        clearMessage = ok ? nil : "백업 파일을 만들지 못해 지우지 않았어요."
+    }
+
     // MARK: 줄·구역
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(title)
-                .font(.system(size: 10.5 * scale, weight: .bold))
+                .font(.system(size: 10.5 * text, weight: .bold))
                 .foregroundStyle(palette.sectionTitle)
                 .padding(.top, 6 * scale)
                 .padding(.bottom, 2 * scale)
@@ -141,19 +243,14 @@ struct SettingsTabView: View {
             Spacer(minLength: 8 * scale)
             control()
         }
-        .frame(height: 21 * scale)
+        .frame(height: 21 * text)
     }
 
     private func toggle(_ binding: Binding<Bool>) -> some View {
-        Toggle("", isOn: binding).labelsHidden().toggleStyle(OrangeSwitchStyle(scale: scale))
+        Toggle("", isOn: binding).labelsHidden().toggleStyle(OrangeSwitchStyle(scale: text))
     }
 
     // MARK: 값 연결
-
-    /// 끄는 동안 서랍 크기가 바뀌면 슬라이드바가 손에서 도망가므로, 손을 뗄 때 적용한다.
-    private var scaleBinding: Binding<Double> {
-        Binding(get: { scaleDraft ?? drawerScale }, set: { scaleDraft = $0 })
-    }
 
     private func refreshLogin() {
         loginEnabled = LoginItem.isEnabled
@@ -173,6 +270,59 @@ struct SettingsTabView: View {
     }
 
     static let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
+}
+
+/// 퍼센트 슬라이드바. 손을 떼면 저장한다.
+/// onPreview가 있으면(투명도) 끄는 동안 바로 보여 주고, 손을 떼거나 0.4초 멈추면 저장한다.
+/// onPreview가 없으면(크기) 끄는 동안 서랍 크기가 바뀌어 손에서 도망가지 않게 손을 뗄 때만 저장한다.
+struct PercentSlider: View {
+    @Binding var stored: Double
+    let range: ClosedRange<Double>
+    let step: Double
+    let clamp: (Double) -> Double
+    let label: (Double) -> String
+    let scale: CGFloat
+    let font: Font
+    var onPreview: ((Double?) -> Void)?
+
+    @State private var draft: Double?
+    @State private var commitTask: Task<Void, Never>?
+
+    var body: some View {
+        HStack(spacing: 6 * scale) {
+            Slider(value: binding, in: range, step: step) { editing in
+                if !editing { commit() }
+            }
+            .tint(Brand.orange)
+            .frame(width: 120 * scale)
+            Text(label(draft ?? stored))
+                .font(font).monospacedDigit()
+                .frame(width: 38 * scale, alignment: .trailing)
+        }
+    }
+
+    private var binding: Binding<Double> {
+        Binding(get: { draft ?? stored }, set: { value in
+            draft = value
+            guard let onPreview else { return }
+            onPreview(value)
+            commitTask?.cancel()
+            commitTask = Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(400))
+                guard !Task.isCancelled else { return }
+                commit()
+            }
+        })
+    }
+
+    private func commit() {
+        commitTask?.cancel()
+        commitTask = nil
+        guard let d = draft else { return }
+        stored = clamp(d)
+        draft = nil
+        onPreview?(nil)
+    }
 }
 
 /// 시안 스위치: 약 26×15pt, 켜짐은 주황 #F5A623

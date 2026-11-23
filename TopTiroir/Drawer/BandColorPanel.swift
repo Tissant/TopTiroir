@@ -9,6 +9,8 @@ final class BandColorPanel: NSObject {
     /// 서랍 오른쪽 옆, 서랍보다 한 층 위에 띄운다.
     func show(nextTo drawerFrame: NSRect, above level: NSWindow.Level) {
         let panel = NSColorPanel.shared
+        // 색을 정확히 보도록 서랍 투명도와 상관없이 항상 불투명
+        panel.alphaValue = 1
         panel.showsAlpha = false
         // 서랍은 앱을 활성으로 만들지 않는다. NSPanel 기본값(비활성 때 숨김)이면 열리자마자 숨어 버린다.
         panel.hidesOnDeactivate = false

@@ -30,31 +30,57 @@ struct DrawerRootView: View {
     @Bindable var model: DrawerModel
     @AppStorage(SettingsKey.drawerScale) private var storedScale = SettingsDefault.drawerScale
     @Environment(\.colorScheme) private var scheme
+    /// 끌기 시작할 때의 길이와 마우스 높이(화면 좌표)
+    @State private var dragStart: (height: CGFloat, mouseY: CGFloat)?
 
+    @AppStorage(SettingsKey.textScale) private var storedText = SettingsDefault.textScale
+    @AppStorage(SettingsKey.drawerOpacity) private var storedWindowOpacity = SettingsDefault.drawerOpacity
+    @AppStorage(SettingsKey.textOpacity) private var storedTextOpacity = SettingsDefault.textOpacity
+
+    /// 창 크기 비율(폭·여백·모서리·손잡이)
     private var s: CGFloat { CGFloat(Layout.clampedScale(storedScale)) }
+    /// 글자 크기 비율(글자와 글자 줄 높이)
+    private var t: CGFloat { CGFloat(Layout.clampedScale(storedText)) }
+    /// 유리 배경 투명도(글자는 그대로). 슬라이드바를 끄는 동안엔 미리 보기 값.
+    private var windowOpacity: Double {
+        Layout.clampedOpacity(model.windowOpacityPreview ?? storedWindowOpacity, range: Layout.windowOpacityRange)
+    }
+    private var textOpacity: Double {
+        Layout.clampedOpacity(model.textOpacityPreview ?? storedTextOpacity, range: Layout.textOpacityRange)
+    }
 
     var body: some View {
         let palette = DrawerPalette(dark: scheme == .dark)
         let radius = 24 * s
         let shape = UnevenRoundedRectangle(bottomLeadingRadius: radius, bottomTrailingRadius: radius, style: .continuous)
-        let tabBarHeight = 17 * s                  // 선택 탭 16 + 가로선 1
+        let tabBarHeight = 17 * t                  // 선택 탭 16 + 가로선 1 (글자 크기를 따름)
         let handleArea = 4 * s + 16 * s            // 손잡이 + 위아래 여백
         let chrome = 10 * s + tabBarHeight + handleArea
         let available = max(model.maxHeight - chrome, 40)
 
         VStack(spacing: 0) {
-            BookmarkTabBar(selection: $model.tab, scale: s, palette: palette)
+            BookmarkTabBar(selection: $model.tab, scale: s, text: t, palette: palette)
                 .frame(height: tabBarHeight)
-            ScrollView {
-                tabContent(palette)
-                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { model.reportContentHeight($0) }
+            if model.tab == .notes {
+                // 메모/할 일: 길이는 손잡이로 정한다(안쪽에서 각자 스크롤).
+                let notesMax = max(available - 6 * s, 0)
+                NotesTabView(model: model,
+                             height: Layout.clampedNotesHeight(model.notesHeight, maxHeight: notesMax),
+                             scale: s, text: t, palette: palette)
+                handle(palette, resizable: true, maxHeight: notesMax)
+            } else {
+                ScrollView {
+                    tabContent(palette)
+                        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { model.reportContentHeight($0) }
+                }
+                .scrollBounceBehavior(.basedOnSize)
+                .frame(height: min(model.contentHeight, available))
+                handle(palette, resizable: false, maxHeight: 0)
             }
-            .scrollBounceBehavior(.basedOnSize)
-            .frame(height: min(model.contentHeight, available))
-            Capsule()
-                .fill(palette.handle)
-                .frame(width: 36 * s, height: 4 * s)
-                .padding(.vertical, 8 * s)
+        }
+        .opacity(textOpacity)
+        .overlay(alignment: .bottom) {
+            if model.pendingAction != nil { saveEditPrompt(palette) }
         }
         .padding(.top, 10 * s)
         .padding(.horizontal, 12 * s)
@@ -64,18 +90,96 @@ struct DrawerRootView: View {
                 VisualEffectBlur()
                 LinearGradient(colors: [palette.glassTop, palette.glassBottom], startPoint: .top, endPoint: .bottom)
             }
+            .opacity(windowOpacity)
         }
         .clipShape(shape)
         .overlay {
-            OpenTopOutline(radius: radius).stroke(palette.border, lineWidth: 1)
+            OpenTopOutline(radius: radius).stroke(palette.border.opacity(windowOpacity), lineWidth: 1)
         }
+    }
+
+    /// 맨 아래 손잡이. 메모/할 일 탭에서는 위아래로 끌어 길이를 바꾸고, 왼쪽에 남은 할 일 수를 보인다.
+    @ViewBuilder private func handle(_ palette: DrawerPalette, resizable: Bool, maxHeight: CGFloat) -> some View {
+        let bar = Capsule()
+            .fill(dragStart != nil ? Brand.orange.opacity(0.8) : palette.handle)
+            .frame(width: 36 * s, height: 4 * s)
+            .padding(.vertical, 8 * s)
+            .padding(.horizontal, 40 * s)   // 끌 수 있는 범위(가운데만, 왼쪽 글자와 겹치지 않게)
+            .contentShape(Rectangle())
+        ZStack {
+            if resizable {
+                HStack {
+                    Text(todoCountText)
+                        .font(.system(size: 10.5 * t).monospacedDigit())
+                        .foregroundStyle(palette.sectionTitle)
+                        .help("남은 할 일 / 전체 할 일")
+                    Spacer()
+                }
+                .padding(.leading, 6 * s)
+                bar
+                    .pointerStyle(.frameResize(position: .bottom))
+                    .help("끌어서 길이 바꾸기")
+                    .gesture(
+                        // 서랍 창이 함께 늘어나므로 창 안 좌표 대신 화면의 마우스 위치로 계산한다.
+                        DragGesture(minimumDistance: 1, coordinateSpace: .global)
+                            .onChanged { _ in
+                                let mouseY = NSEvent.mouseLocation.y
+                                if dragStart == nil {
+                                    dragStart = (Layout.clampedNotesHeight(model.notesHeight, maxHeight: maxHeight), mouseY)
+                                }
+                                guard let start = dragStart else { return }
+                                let h = Layout.notesHeightAfterDrag(startHeight: start.height, startMouseY: start.mouseY,
+                                                                    currentMouseY: mouseY, maxHeight: maxHeight)
+                                model.setNotesHeight(h, save: false)
+                            }
+                            .onEnded { _ in
+                                dragStart = nil
+                                model.setNotesHeight(model.notesHeight, save: true)
+                            }
+                    )
+            } else {
+                bar
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    /// 할 일을 고친 채 닫기·종료하려 할 때 서랍 안에 띄우는 확인 줄
+    private func saveEditPrompt(_ palette: DrawerPalette) -> some View {
+        let quitting = model.pendingAction == .quit
+        return VStack(alignment: .leading, spacing: 6 * t) {
+            Text("수정한 내용을 저장할까요?")
+                .font(.system(size: 12 * t, weight: .semibold))
+            Text(quitting ? "고른 뒤 TopTiroir를 종료해요." : "고른 뒤 서랍을 닫아요.")
+                .font(.system(size: 11 * t))
+                .foregroundStyle(.secondary)
+            HStack {
+                Spacer()
+                Button("취소") { model.resolvePending(save: nil) }
+                Button("저장 안 함") { model.resolvePending(save: false) }
+                Button("저장") { model.resolvePending(save: true) }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Brand.orange)
+            }
+            .font(.system(size: 11 * t))
+            .controlSize(.small)
+        }
+        .padding(10 * s)
+        .background(RoundedRectangle(cornerRadius: 10 * s, style: .continuous).fill(.regularMaterial))
+        .overlay(RoundedRectangle(cornerRadius: 10 * s, style: .continuous).stroke(Brand.orange.opacity(0.6), lineWidth: 1))
+        .padding(.bottom, 24 * s)
+    }
+
+    private var todoCountText: String {
+        let d = model.notes.document
+        return d.todos.isEmpty ? "" : "미완료 \(d.remainingCount) / 할 일 \(d.todos.count)"
     }
 
     @ViewBuilder private func tabContent(_ palette: DrawerPalette) -> some View {
         switch model.tab {
-        case .notes: ComingSoonView(symbol: "note.text", text: "메모/할 일은 v0.2에서 만나요", scale: s, palette: palette)
-        case .favorites: ComingSoonView(symbol: "star", text: "즐겨찾기는 v0.4에서 만나요", scale: s, palette: palette)
-        case .settings: SettingsTabView(model: model, scale: s, palette: palette)
+        case .notes: EmptyView()
+        case .favorites: ComingSoonView(symbol: "star", text: "즐겨찾기는 v0.4에서 만나요", scale: s, textScale: t, palette: palette)
+        case .settings: SettingsTabView(model: model, scale: s, text: t, palette: palette)
         }
     }
 }
@@ -133,6 +237,7 @@ struct TabOutline: Shape {
 struct BookmarkTabBar: View {
     @Binding var selection: DrawerTab
     let scale: CGFloat
+    let text: CGFloat
     let palette: DrawerPalette
 
     var body: some View {
@@ -155,12 +260,12 @@ struct BookmarkTabBar: View {
         let shape = UnevenRoundedRectangle(topLeadingRadius: r, topTrailingRadius: r)
         return Button { selection = tab } label: {
             Text(tab.title)
-                .font(.system(size: 12 * scale, weight: selected ? .bold : .semibold))
+                .font(.system(size: 12 * text, weight: selected ? .bold : .semibold))
                 .foregroundStyle(selected ? palette.selectedText : palette.tabText)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity)
                 // 선택: 16pt + 가로선 1pt를 덮음 / 기본: 14pt, 가로선 위에 놓임
-                .frame(height: selected ? 17 * scale : 14 * scale)
+                .frame(height: selected ? 17 * text : 14 * text)
                 .padding(.bottom, selected ? 0 : 1)
                 .background {
                     if selected {
@@ -190,6 +295,7 @@ struct ComingSoonView: View {
     let symbol: String
     let text: String
     let scale: CGFloat
+    let textScale: CGFloat
     let palette: DrawerPalette
 
     var body: some View {
@@ -198,7 +304,7 @@ struct ComingSoonView: View {
                 .font(.system(size: 22 * scale))
                 .foregroundStyle(Brand.orange)
             Text(text)
-                .font(.system(size: 12 * scale))
+                .font(.system(size: 12 * textScale))
                 .foregroundStyle(palette.tabText)
         }
         .frame(maxWidth: .infinity)

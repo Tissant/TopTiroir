@@ -80,9 +80,9 @@ enum Layout {
         drawerBaseWidth * CGFloat(clampedScale(scale))
     }
 
-    /// 서랍 최대 높이 = 화면 높이의 절반
+    /// 서랍 최대 높이 = 화면 높이의 절반, 그래도 900pt를 넘지 않는다.
     static func maxDrawerHeight(screenFrame: CGRect) -> CGFloat {
-        screenFrame.height / 2
+        min(screenFrame.height / 2, drawerHeightLimit)
     }
 
     /// 서랍 위치: 메뉴막대 바로 아래 가운데. 높이는 내용에 맞추되 화면 절반을 넘지 않는다.

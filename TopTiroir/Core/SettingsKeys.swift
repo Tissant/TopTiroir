@@ -6,6 +6,14 @@ enum SettingsKey {
     static let drawerScale = "drawerScale"
     static let notchOpenMode = "notchOpenMode"
     static let closeMode = "closeMode"
+    static let drawerOpacity = "drawerOpacity"
+    static let textScale = "textScale"
+    static let textOpacity = "textOpacity"
+    static let openTabMode = "openTabMode"
+    static let lastTab = "lastTab"
+    static let notesHeight = "notesHeight"
+    static let hotKeyCode = "hotKeyCode"
+    static let hotKeyModifiers = "hotKeyModifiers"
 }
 
 enum SettingsDefault {
@@ -15,6 +23,14 @@ enum SettingsDefault {
     static let drawerScale = 1.0
     static let notchOpenMode = NotchOpenMode.click.rawValue
     static let closeMode = CloseMode.outsideOrEsc.rawValue
+    static let drawerOpacity = 1.0
+    static let textScale = 1.0
+    static let textOpacity = 1.0
+    static let openTabMode = OpenTabMode.last.rawValue
+    static let lastTab = DrawerTab.notes.rawValue
+    static let notesHeight = Double(Layout.notesDefaultHeight)
+    static let hotKeyCode = Int(Shortcut.f12.keyCode)
+    static let hotKeyModifiers = Int(Shortcut.f12.modifiers)
 }
 
 /// 노치에서 서랍 열기 방식
