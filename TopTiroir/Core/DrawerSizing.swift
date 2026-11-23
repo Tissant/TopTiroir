@@ -44,4 +44,21 @@ extension Layout {
     static func opacityPercentText(_ value: Double, range: ClosedRange<Double>) -> String {
         "\(Int((clampedOpacity(value, range: range) * 100).rounded()))%"
     }
+
+    // MARK: 옆 창(단축키 보기)
+
+    static func shortcutsWindowWidth(scale: Double) -> CGFloat {
+        300 * CGFloat(clampedScale(scale))
+    }
+
+    /// 서랍 오른쪽에 서랍과 같은 높이로. 화면 오른쪽 밖으로 나가면 서랍 왼쪽에, 그래도 안 되면 화면 안쪽 끝에 붙인다.
+    static func sideWindowFrame(drawer: CGRect, width: CGFloat, gap: CGFloat, screenFrame: CGRect) -> CGRect {
+        let w = min(width, screenFrame.width)
+        var x = drawer.maxX + gap
+        if x + w > screenFrame.maxX {
+            x = drawer.minX - gap - w
+            if x < screenFrame.minX { x = screenFrame.maxX - w }
+        }
+        return CGRect(x: x, y: drawer.minY, width: w, height: drawer.height)
+    }
 }

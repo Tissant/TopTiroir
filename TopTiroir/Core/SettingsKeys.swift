@@ -18,6 +18,9 @@ enum SettingsKey {
     static let notesHeight = "notesHeight"
     static let hotKeyCode = "hotKeyCode"
     static let hotKeyModifiers = "hotKeyModifiers"
+
+    /// 서랍 열기 외 단축키(탭 이동·종료): "shortcut.tabNotes" 등
+    static func shortcut(_ action: ShortcutAction) -> String { "shortcut." + action.rawValue }
 }
 
 enum SettingsDefault {

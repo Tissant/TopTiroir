@@ -81,6 +81,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let model = drawer.model
         let key = HotKey { [weak self] in self?.drawer.toggle() }
         hotKey = key
+        model.loadShortcuts()
         model.shortcut = Shortcut.stored(keyCode: defaults.integer(forKey: SettingsKey.hotKeyCode),
                                          modifiers: defaults.integer(forKey: SettingsKey.hotKeyModifiers))
         model.hotKeyAvailable = key.register(model.shortcut)

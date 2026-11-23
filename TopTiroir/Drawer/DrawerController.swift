@@ -33,10 +33,23 @@ final class DrawerModel {
     @ObservationIgnored var onPendingResolved: ((PendingAction, Bool) -> Void)?
 
     // 단축키
-    var shortcut: Shortcut = .f12
+    var shortcuts = ShortcutSet.defaults
     var hotKeyAvailable = true
-    var isRecordingHotKey = false
-    var hotKeyMessage: String?
+    /// 지금 「새 키를 누르세요」 상태인 항목
+    var recordingAction: ShortcutAction?
+    /// 항목별 안내(충돌·실패 등)
+    var shortcutMessage: (action: ShortcutAction, text: String)?
+    /// 단축키 보기 창이 열려 있는지
+    var shortcutsWindowOpen = false
+    @ObservationIgnored var onToggleShortcutsWindow: (() -> Void)?
+
+    /// 서랍 열기 단축키(설정 탭의 줄과 단축키 창이 같은 값을 쓴다)
+    var shortcut: Shortcut {
+        get { shortcuts[.openDrawer] }
+        set { shortcuts[.openDrawer] = newValue }
+    }
+    var isRecordingHotKey: Bool { recordingAction == .openDrawer }
+    var hotKeyMessage: String? { shortcutMessage?.action == .openDrawer ? shortcutMessage?.text : nil }
 
     @ObservationIgnored var onLayoutChange: (() -> Void)?
     @ObservationIgnored var onShowStatusItem: (() -> Void)?
@@ -113,31 +126,99 @@ final class DrawerModel {
 
     // MARK: 단축키 바꾸기
 
-    func beginHotKeyRecording() {
-        guard !isRecordingHotKey else { return }
-        hotKeyMessage = nil
-        isRecordingHotKey = true
+    func beginRecording(_ action: ShortcutAction) {
+        if let current = recordingAction {
+            if current == action { finishRecording(nil); return }   // 같은 줄을 다시 누르면 취소
+            finishRecording(nil)
+        }
+        shortcutMessage = nil
+        recordingAction = action
+        // 어떤 키를 녹화하든 전역 단축키를 잠시 풀어 둔다(F12 등을 누르면 서랍이 닫혀 버리지 않게).
         onBeginHotKeyRecording?()
     }
 
-    /// nil이면 취소
-    func finishHotKeyRecording(_ new: Shortcut?) {
-        guard isRecordingHotKey else { return }
-        isRecordingHotKey = false
-        if let new { applyHotKey(new) } else { onCancelHotKeyRecording?() }
-    }
-
-    func resetHotKey() {
-        if isRecordingHotKey { isRecordingHotKey = false }
-        applyHotKey(.f12)
-    }
-
-    private func applyHotKey(_ new: Shortcut) {
-        let old = shortcut
-        if onApplyHotKey?(new) == true {
-            hotKeyMessage = nil
+    /// 누른 키(nil이면 취소)
+    func finishRecording(_ new: Shortcut?) {
+        guard let action = recordingAction else { return }
+        recordingAction = nil
+        if let new, action == .openDrawer {
+            assign(new, to: action)          // 새 키로 전역 등록(실패하면 이전 키로)
         } else {
-            hotKeyMessage = "\(new.displayName)은(는) 다른 곳에서 쓰고 있어 바꾸지 못했어요. \(old.displayName)을(를) 그대로 써요."
+            onCancelHotKeyRecording?()       // 지금 서랍 열기 키를 다시 등록
+            if let new { assign(new, to: action) }
+        }
+    }
+
+    /// 녹화 중 누른 키 검사. 문제가 있으면 안내만 띄우고 계속 기다린다.
+    func handleRecordedKey(_ s: Shortcut) {
+        guard let action = recordingAction else { return }
+        switch shortcuts.check(s, for: action) {
+        case .ok: finishRecording(s)
+        case .cancel: finishRecording(nil)
+        case .needsModifier: say(action, "글자·숫자 키는 ⌘ 또는 ⌃와 함께 눌러 주세요. (F1~F20은 혼자 써도 돼요)")
+        case .needsCommand: say(action, "종료는 ⌘와 함께 눌러 주세요.")
+        case .unsupported: say(action, "이 키는 쓸 수 없어요. 다른 키를 눌러 주세요.")
+        case .conflict(let owner): say(action, "\(s.normalized.displayName)은(는) 「\(owner)」에서 이미 쓰는 키예요. 다른 키를 눌러 주세요.")
+        }
+    }
+
+    func reset(_ action: ShortcutAction) {
+        if recordingAction != nil { finishRecording(nil) }
+        let d = action.defaultShortcut
+        if case .conflict(let owner) = shortcuts.check(d, for: action) {
+            say(action, "기본값 \(d.displayName)을(를) 「\(owner)」에서 쓰고 있어요. 그쪽을 먼저 바꿔 주세요.")
+            return
+        }
+        assign(d, to: action)
+    }
+
+    func resetAll() {
+        if recordingAction != nil { finishRecording(nil) }
+        shortcutMessage = nil
+        for action in ShortcutAction.allCases where action != .openDrawer {
+            shortcuts[action] = action.defaultShortcut
+            save(action)
+        }
+        assign(.f12, to: .openDrawer)
+    }
+
+    // 예전 이름(설정 탭의 서랍 열기 줄)
+    func beginHotKeyRecording() { beginRecording(.openDrawer) }
+    func finishHotKeyRecording(_ new: Shortcut?) { if recordingAction == .openDrawer { finishRecording(new) } }
+    func resetHotKey() { reset(.openDrawer) }
+
+    private func assign(_ new: Shortcut, to action: ShortcutAction) {
+        if action == .openDrawer {
+            let old = shortcut
+            if onApplyHotKey?(new) == true {
+                if shortcutMessage?.action == action { shortcutMessage = nil }
+            } else {
+                say(action, "\(new.displayName)은(는) 다른 앱에서 쓰고 있어 바꾸지 못했어요. \(old.displayName)을(를) 그대로 써요.")
+            }
+            return
+        }
+        shortcuts[action] = new
+        save(action)
+        if shortcutMessage?.action == action { shortcutMessage = nil }
+    }
+
+    private func save(_ action: ShortcutAction) {
+        guard action != .openDrawer else { return } // 서랍 열기는 AppDelegate가 저장(전역 등록 성공 때만)
+        UserDefaults.standard.set(ShortcutSet.pack(shortcuts[action]), forKey: SettingsKey.shortcut(action))
+    }
+
+    private func say(_ action: ShortcutAction, _ text: String) {
+        shortcutMessage = (action, text)
+    }
+
+    /// 저장된 값 불러오기(서랍 열기는 AppDelegate가 따로)
+    func loadShortcuts() {
+        let d = UserDefaults.standard
+        for action in ShortcutAction.allCases where action != .openDrawer {
+            if d.object(forKey: SettingsKey.shortcut(action)) != nil {
+                shortcuts[action] = ShortcutSet.unpack(d.integer(forKey: SettingsKey.shortcut(action)),
+                                                       fallback: action.defaultShortcut)
+            }
         }
     }
 }
@@ -152,6 +233,9 @@ final class DrawerController {
     private var screen: NSScreen?
     private var globalMouseMonitor: Any?
     private var localKeyMonitor: Any?
+    private var localMouseMonitor: Any?
+    private let shortcutsPanel = DrawerPanel()
+    private let shortcutsHosting: NSHostingView<ShortcutsView>
 
     var isOpen: Bool { panel.isVisible }
 
@@ -159,6 +243,11 @@ final class DrawerController {
         hosting = NSHostingView(rootView: DrawerRootView(model: model))
         hosting.sizingOptions = [.intrinsicContentSize]
         panel.contentView = hosting
+        shortcutsHosting = NSHostingView(rootView: ShortcutsView(model: model))
+        shortcutsHosting.sizingOptions = []
+        shortcutsPanel.contentView = shortcutsHosting
+        shortcutsPanel.level = NSWindow.Level(rawValue: panel.level.rawValue + 1)
+        model.onToggleShortcutsWindow = { [weak self] in self?.toggleShortcutsWindow() }
         model.onLayoutChange = { [weak self] in
             DispatchQueue.main.async { self?.relayoutIfOpen() }
         }
@@ -198,8 +287,9 @@ final class DrawerController {
         guard isOpen else { return }
         // 할 일을 고치는 중이고 바뀐 내용이 있으면 닫지 않고 저장 확인 줄을 보인다.
         guard model.prepareToLeave(.close) else { return }
-        model.finishHotKeyRecording(nil)
+        model.finishRecording(nil)
         panel.orderOut(nil)
+        hideShortcutsWindow()
         BandColorPanel.shared.close()
         removeMonitors()
         model.notes.saveNow()
@@ -228,6 +318,37 @@ final class DrawerController {
         if panel.frame != frame { panel.setFrame(frame, display: true) }
         applyAppearance()
         panel.invalidateShadow()
+        if model.shortcutsWindowOpen { placeShortcutsWindow() }
+    }
+
+    // MARK: 단축키 보기 창 (서랍 옆)
+
+    private func toggleShortcutsWindow() {
+        if model.shortcutsWindowOpen { hideShortcutsWindow() } else { showShortcutsWindow() }
+    }
+
+    private func showShortcutsWindow() {
+        guard isOpen else { return }
+        model.shortcutsWindowOpen = true
+        placeShortcutsWindow()
+        shortcutsPanel.orderFrontRegardless()
+    }
+
+    private func hideShortcutsWindow() {
+        if model.recordingAction != nil { model.finishRecording(nil) }
+        model.shortcutsWindowOpen = false
+        shortcutsPanel.orderOut(nil)
+    }
+
+    /// 서랍 오른쪽에 서랍과 같은 높이로. 화면 밖으로 나가면 서랍 왼쪽에.
+    private func placeShortcutsWindow() {
+        guard let s = screen else { return }
+        let d = UserDefaults.standard
+        let width = Layout.shortcutsWindowWidth(scale: d.double(forKey: SettingsKey.drawerScale))
+        let frame = Layout.sideWindowFrame(drawer: panel.frame, width: width, gap: 8, screenFrame: s.frame)
+        if shortcutsPanel.frame != frame { shortcutsPanel.setFrame(frame, display: true) }
+        shortcutsPanel.appearance = panel.appearance
+        shortcutsPanel.invalidateShadow()
     }
 
     /// 서랍만의 밝기 모양(맥 전체 화면 모드는 그대로). 직접 고른 색이면 그 밝기에 맞춰 글자색이 정해진다.
@@ -252,11 +373,18 @@ final class DrawerController {
                 if mode != CloseMode.escOnly.rawValue { DrawerController.shared?.close() }
             }
         }
+        localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
+            MainActor.assumeIsolated {
+                if event.window === DrawerController.shared?.panel { DrawerController.resignTextFocusIfNeeded(event) }
+            }
+            return event
+        }
         localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             // 단축키 바꾸는 중이면 누른 키를 모두 여기서 받는다(esc는 취소).
             let recorded = MainActor.assumeIsolated { () -> Bool in
-                guard let model = DrawerController.shared?.model, model.isRecordingHotKey else { return false }
-                DrawerController.record(event, into: model)
+                guard let model = DrawerController.shared?.model, model.recordingAction != nil else { return false }
+                model.handleRecordedKey(Shortcut(keyCode: UInt32(event.keyCode),
+                                                 modifiers: DrawerController.carbonModifiers(event.modifierFlags)))
                 return true
             }
             if recorded { return nil }
@@ -269,11 +397,24 @@ final class DrawerController {
                 }
                 if handled { return nil }
             }
-            // ⌘Q: 어느 탭에서든 종료(저장 확인은 applicationShouldTerminate에서)
-            if event.keyCode == 12, event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command {
-                MainActor.assumeIsolated { NSApp.terminate(nil) }
-                return nil
+            // 종료(기본 ⌘Q)·탭 이동(기본 1·2·3). 탭 이동은 글자 커서가 없을 때만(입력칸이면 숫자가 글자로).
+            let local = MainActor.assumeIsolated { () -> Bool in
+                guard let model = DrawerController.shared?.model else { return false }
+                let focused = DrawerController.isTextInput(event.window?.firstResponder)
+                switch model.shortcuts.localAction(keyCode: event.keyCode,
+                                                   modifiers: DrawerController.carbonModifiers(event.modifierFlags),
+                                                   textFocused: focused) {
+                case .quit:
+                    NSApp.terminate(nil)   // 저장 확인은 applicationShouldTerminate에서
+                    return true
+                case .showTab(let tab):
+                    model.tab = tab
+                    return true
+                case nil:
+                    return false
+                }
             }
+            if local { return nil }
             if event.keyCode == 53 { // esc
                 // 할 일을 고치는 중이면 esc는 고치기 취소(서랍은 그대로)
                 let cancelledEdit = MainActor.assumeIsolated { () -> Bool in
@@ -292,19 +433,27 @@ final class DrawerController {
     private func removeMonitors() {
         if let m = globalMouseMonitor { NSEvent.removeMonitor(m) }
         if let m = localKeyMonitor { NSEvent.removeMonitor(m) }
+        if let m = localMouseMonitor { NSEvent.removeMonitor(m) }
         globalMouseMonitor = nil
         localKeyMonitor = nil
+        localMouseMonitor = nil
     }
 
-    private static func record(_ event: NSEvent, into model: DrawerModel) {
-        let keyCode = UInt32(event.keyCode)
-        let mods = carbonModifiers(event.modifierFlags)
-        switch Shortcut.check(keyCode: keyCode, modifiers: mods) {
-        case .ok: model.finishHotKeyRecording(Shortcut(keyCode: keyCode, modifiers: mods))
-        case .cancel: model.finishHotKeyRecording(nil)
-        case .needsModifier: model.hotKeyMessage = "글자·숫자 키는 ⌘ 또는 ⌃와 함께 눌러 주세요. (F1~F20은 혼자 써도 돼요)"
-        case .unsupported: model.hotKeyMessage = "이 키는 쓸 수 없어요. 다른 키를 눌러 주세요."
+    /// 글자 커서가 있는 칸인지(메모 칸, 입력칸의 필드 편집기는 모두 NSTextView)
+    private static func isTextInput(_ responder: NSResponder?) -> Bool {
+        responder is NSTextView
+    }
+
+    /// 서랍에서 입력칸이 아닌 곳을 누르면 글자 커서를 뺀다(그래야 1·2·3 탭 이동이 동작).
+    private static func resignTextFocusIfNeeded(_ event: NSEvent) {
+        guard let window = event.window, isTextInput(window.firstResponder),
+              let content = window.contentView else { return }
+        var view = content.hitTest(content.convert(event.locationInWindow, from: nil))
+        while let v = view {
+            if v is NSTextView || v is NSTextField { return }   // 입력칸을 누른 것
+            view = v.superview
         }
+        DispatchQueue.main.async { window.makeFirstResponder(nil) }
     }
 
     /// ⌘Z 되돌리기 · ⇧⌘Z 다시 실행 · ⌘X 잘라내기 · ⌘C 복사 · ⌘V 붙여넣기 · ⌘A 전체 선택
@@ -324,7 +473,7 @@ final class DrawerController {
         }
     }
 
-    private static func carbonModifiers(_ flags: NSEvent.ModifierFlags) -> UInt32 {
+    fileprivate static func carbonModifiers(_ flags: NSEvent.ModifierFlags) -> UInt32 {
         var m: UInt32 = 0
         if flags.contains(.command) { m |= Shortcut.Modifier.command }
         if flags.contains(.shift) { m |= Shortcut.Modifier.shift }

@@ -115,6 +115,12 @@ struct SettingsTabView: View {
                     }
                     .labelsHidden().pickerStyle(.menu).fixedSize()
                 }
+                row("단축키") {
+                    Button(model.shortcutsWindowOpen ? "단축키 닫기" : "단축키 보기…") {
+                        model.onToggleShortcutsWindow?()
+                    }
+                    .help("쓸 수 있는 단축키를 보고 바꾸는 창을 서랍 옆에 열어요")
+                }
             }
             Divider()
             section("관리") {
