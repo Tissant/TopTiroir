@@ -20,6 +20,11 @@ struct SettingsTabView: View {
     @AppStorage(SettingsKey.openTabMode) private var openTabMode = SettingsDefault.openTabMode
     @AppStorage(SettingsKey.textScale) private var textScale = SettingsDefault.textScale
     @AppStorage(SettingsKey.textOpacity) private var textOpacity = SettingsDefault.textOpacity
+    @AppStorage(SettingsKey.indentWidth) private var indentWidth = SettingsDefault.indentWidth
+    @AppStorage(SettingsKey.drawerColorMode) private var drawerColorMode = SettingsDefault.drawerColorMode
+    @AppStorage(SettingsKey.drawerAppearance) private var drawerAppearance = SettingsDefault.drawerAppearance
+    @AppStorage(SettingsKey.drawerColor) private var drawerColorHex = SettingsDefault.drawerColor
+    @State private var indentText = ""
 
     /// 비우기 확인 중인 대상
     @State private var confirmClear: ClearTarget?
@@ -45,7 +50,7 @@ struct SettingsTabView: View {
                 row("노치 숨기기") { toggle($hideNotch) }
                 row("화면 모서리 둥글게") { toggle($roundCorners) }
                 row("띠 색") {
-                    Button { model.onShowColorPanel?() } label: {
+                    Button { model.onShowColorPanel?(SettingsKey.bandColor, SettingsDefault.bandColor) } label: {
                         RoundedRectangle(cornerRadius: 4 * scale)
                             .fill(Color(nsColor: NSColor(ttHex: bandColorHex)))
                             .overlay(RoundedRectangle(cornerRadius: 4 * scale).stroke(palette.divider, lineWidth: 1))
@@ -57,6 +62,7 @@ struct SettingsTabView: View {
                         Button("기본") { bandColorHex = SettingsDefault.bandColor }
                     }
                 }
+                row("서랍·창 색상") { drawerColorControl }
                 row("글자 크기") {
                     PercentSlider(stored: $textScale, range: Layout.scaleRange, step: 0.1,
                                   clamp: Layout.clampedScale, label: Layout.percentText,
@@ -90,6 +96,7 @@ struct SettingsTabView: View {
                 } else if model.isRecordingHotKey {
                     note("새 키를 누르세요. esc를 누르면 취소돼요.")
                 }
+                row("들여쓰기 너비") { indentControl }
                 row("노치에서 열기") {
                     Picker("노치에서 열기", selection: $notchOpenMode) {
                         ForEach(NotchOpenMode.allCases, id: \.rawValue) { Text($0.title).tag($0.rawValue) }
@@ -112,7 +119,6 @@ struct SettingsTabView: View {
             Divider()
             section("관리") {
                 clearRow(.memo)
-                clearRow(.todos)
                 if let clearMessage { note(clearMessage) }
                 row("메뉴막대 아이콘 잠깐 보이기") {
                     Button(statusItemShown ? "60초 동안 보임" : "보이기") {
@@ -182,6 +188,89 @@ struct SettingsTabView: View {
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.bottom, 2 * scale)
+    }
+
+    // MARK: 서랍·창 색상
+
+    /// (●기본 [라이트/다크/시스템]) (○색상 [견본]) — 둘 중 하나만 고른다.
+    private var drawerColorControl: some View {
+        let mode = DrawerColorMode(rawValue: drawerColorMode) ?? .standard
+        return HStack(spacing: 6 * scale) {
+            radio(.standard, selected: mode == .standard)
+            Picker("서랍 밝기", selection: $drawerAppearance) {
+                ForEach(DrawerAppearance.allCases, id: \.rawValue) { Text($0.title).tag($0.rawValue) }
+            }
+            .labelsHidden().pickerStyle(.menu).fixedSize()
+            .disabled(mode != .standard)
+            radio(.custom, selected: mode == .custom)
+                .padding(.leading, 4 * scale)
+            Button {
+                drawerColorMode = DrawerColorMode.custom.rawValue
+                model.onShowColorPanel?(SettingsKey.drawerColor, SettingsDefault.drawerColor)
+            } label: {
+                RoundedRectangle(cornerRadius: 4 * scale)
+                    .fill(Color(nsColor: NSColor(ttHex: drawerColorHex)))
+                    .overlay(RoundedRectangle(cornerRadius: 4 * scale).stroke(palette.divider, lineWidth: 1))
+                    .frame(width: 26 * scale, height: 15 * text)
+            }
+            .buttonStyle(.plain)
+            .opacity(mode == .custom ? 1 : 0.5)
+            .help("서랍 색 고르기 (\(drawerColorHex))")
+        }
+    }
+
+    private func radio(_ value: DrawerColorMode, selected: Bool) -> some View {
+        Button { drawerColorMode = value.rawValue } label: {
+            HStack(spacing: 3 * scale) {
+                Image(systemName: selected ? "largecircle.fill.circle" : "circle")
+                    .foregroundStyle(selected ? Brand.orange : .secondary)
+                Text(value.title).lineLimit(1)
+            }
+            .font(.system(size: 11.5 * text))
+            .fixedSize()
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    // MARK: 들여쓰기 너비
+
+    /// + [ 4 칸 ] −  (1~8칸, 메모 칸 Tab 간격)
+    private var indentControl: some View {
+        HStack(spacing: 4 * scale) {
+            Button("+") { setIndent(indentWidth + 1) }
+                .disabled(indentWidth >= Indent.widthRange.upperBound)
+                .help("한 칸 늘리기")
+            HStack(spacing: 2 * scale) {
+                TextField("", text: $indentText)
+                    .textFieldStyle(.plain)
+                    .multilineTextAlignment(.trailing)
+                    .font(font.monospacedDigit())
+                    .frame(width: 22 * text)
+                    .onSubmit { applyIndentText() }
+                Text("칸").font(font)
+            }
+            .padding(.horizontal, 5 * scale)
+            .background(RoundedRectangle(cornerRadius: 4 * scale).fill(.quaternary))
+            Button("−") { setIndent(indentWidth - 1) }
+                .disabled(indentWidth <= Indent.widthRange.lowerBound)
+                .help("한 칸 줄이기")
+        }
+        .onAppear { indentText = String(Indent.clampedWidth(indentWidth)) }
+        .onChange(of: indentText) { _, new in
+            // 숫자를 칠 때마다 반영(엉뚱한 글자는 무시하고 ↩ 때 되돌림)
+            if let n = Indent.parsedWidth(new), n != indentWidth { indentWidth = n }
+        }
+    }
+
+    private func setIndent(_ value: Int) {
+        indentWidth = Indent.clampedWidth(value)
+        indentText = String(indentWidth)
+    }
+
+    private func applyIndentText() {
+        setIndent(Indent.parsedWidth(indentText) ?? indentWidth)
     }
 
     // MARK: 비우기

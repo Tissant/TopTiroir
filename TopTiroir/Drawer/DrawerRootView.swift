@@ -36,6 +36,8 @@ struct DrawerRootView: View {
     @AppStorage(SettingsKey.textScale) private var storedText = SettingsDefault.textScale
     @AppStorage(SettingsKey.drawerOpacity) private var storedWindowOpacity = SettingsDefault.drawerOpacity
     @AppStorage(SettingsKey.textOpacity) private var storedTextOpacity = SettingsDefault.textOpacity
+    @AppStorage(SettingsKey.drawerColorMode) private var colorMode = SettingsDefault.drawerColorMode
+    @AppStorage(SettingsKey.drawerColor) private var customColorHex = SettingsDefault.drawerColor
 
     /// 창 크기 비율(폭·여백·모서리·손잡이)
     private var s: CGFloat { CGFloat(Layout.clampedScale(storedScale)) }
@@ -88,7 +90,12 @@ struct DrawerRootView: View {
         .background {
             ZStack {
                 VisualEffectBlur()
-                LinearGradient(colors: [palette.glassTop, palette.glassBottom], startPoint: .top, endPoint: .bottom)
+                if colorMode == DrawerColorMode.custom.rawValue {
+                    // 직접 고른 색을 바탕으로(투명도 설정과 함께)
+                    Color(nsColor: NSColor(ttHex: customColorHex))
+                } else {
+                    LinearGradient(colors: [palette.glassTop, palette.glassBottom], startPoint: .top, endPoint: .bottom)
+                }
             }
             .opacity(windowOpacity)
         }

@@ -10,9 +10,12 @@ struct NotesTabView: View {
     let text: CGFloat
     let palette: DrawerPalette
 
+    @AppStorage(SettingsKey.indentWidth) private var indentWidth = SettingsDefault.indentWidth
     @State private var newTodo = ""
+    @State private var confirmClearTodos = false
+    @State private var showClearMenu = false
     @FocusState private var focus: Field?
-    private enum Field { case memo, newTodo }
+    private enum Field { case newTodo }
 
     private var spacing: CGFloat { 8 * scale }
     private var rowHeight: CGFloat { 22 * text }
@@ -25,6 +28,11 @@ struct NotesTabView: View {
         }
         .padding(.top, 6 * scale)
         .frame(height: height + 6 * scale, alignment: .top)
+        .onChange(of: model.openCount) {
+            // 새로 열면 펼친 ▾ 목록과 비우기 확인 줄은 접힌 상태로
+            showClearMenu = false
+            confirmClearTodos = false
+        }
     }
 
     // MARK: 메모
@@ -33,10 +41,8 @@ struct NotesTabView: View {
         let shape = RoundedRectangle(cornerRadius: 8 * scale, style: .continuous)
         return ZStack(alignment: .topLeading) {
             shape.fill(memoFill.shadow(.inner(color: .black.opacity(palette.dark ? 0.45 : 0.18), radius: 2.5 * scale, y: 1)))
-            TextEditor(text: Binding(get: { store.document.memo }, set: { store.setMemo($0) }))
-                .font(.system(size: 12 * text))
-                .scrollContentBackground(.hidden)
-                .focused($focus, equals: .memo)
+            MemoTextView(text: Binding(get: { store.document.memo }, set: { store.setMemo($0) }),
+                         fontSize: 12 * text, indentWidth: Indent.clampedWidth(indentWidth))
                 .padding(.horizontal, 5 * scale)
                 .padding(.vertical, 6 * scale)
             if store.document.memo.isEmpty {
@@ -84,13 +90,12 @@ struct NotesTabView: View {
                 .background(RoundedRectangle(cornerRadius: 6 * scale, style: .continuous).fill(inputFill))
                 .overlay(RoundedRectangle(cornerRadius: 6 * scale, style: .continuous)
                     .stroke(focus == .newTodo ? Brand.orange.opacity(0.7) : palette.divider, lineWidth: 1))
-                Button("완료된 일 삭제") { store.removeCompleted() }
-                    .font(.system(size: 11 * text))
-                    .controlSize(.small)
-                    .disabled(store.document.completedCount == 0)
-                    .help("체크된 할 일만 목록에서 지워요")
+                // 스플릿 단추: 본체 = 완료된 일 삭제, ▾ = 할 일 비우기(서랍 안에 직접 그린 목록)
+                splitButton
             }
+            .zIndex(1)   // 펼친 목록이 아래 할 일 목록 위에 보이게
             .padding(.bottom, 2 * scale)
+            if confirmClearTodos { clearTodosConfirm }
             Rectangle().fill(palette.divider).frame(height: 1)
             ScrollView {
                 LazyVStack(spacing: 0) {
@@ -113,6 +118,85 @@ struct NotesTabView: View {
                 }
             }
         }
+    }
+
+    /// 「완료된 일 삭제 | ▾」. ▾ 목록은 시스템 메뉴 대신 서랍 안에 그려, 오른쪽 끝을 단추 오른쪽 끝에 맞춘다
+    /// (시스템 메뉴는 화살표 왼쪽에서 시작해 서랍 밖으로 튀어나갔다).
+    private var splitButton: some View {
+        let h = rowHeight
+        let shape = RoundedRectangle(cornerRadius: 5 * scale, style: .continuous)
+        let none = store.document.completedCount == 0
+        return HStack(spacing: 0) {
+            Button {
+                showClearMenu = false
+                store.removeCompleted()
+            } label: {
+                Text("완료된 일 삭제")
+                    .font(.system(size: 11 * text))
+                    .foregroundStyle(none ? .secondary : .primary)
+                    .padding(.horizontal, 8 * scale)
+                    .frame(height: h)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("체크된 할 일만 지우기")
+            Rectangle().fill(palette.divider).frame(width: 1, height: h * 0.6)
+            Button { showClearMenu.toggle() } label: {
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 9 * text, weight: .semibold))
+                    .padding(.horizontal, 6 * scale)
+                    .frame(height: h)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("더 보기")
+        }
+        .background(shape.fill(palette.tabFill))
+        .fixedSize()
+        .overlay(alignment: .topTrailing) {
+            if showClearMenu {
+                Button {
+                    showClearMenu = false
+                    confirmClearTodos = true
+                } label: {
+                    Text("할 일 비우기…")
+                        .font(.system(size: 11.5 * text))
+                        .foregroundStyle(store.document.todos.isEmpty ? .secondary : .primary)
+                        .padding(.horizontal, 10 * scale)
+                        .frame(height: h)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(store.document.todos.isEmpty)
+                .background(RoundedRectangle(cornerRadius: 6 * scale, style: .continuous).fill(.regularMaterial))
+                .overlay(RoundedRectangle(cornerRadius: 6 * scale, style: .continuous).stroke(palette.divider, lineWidth: 1))
+                .shadow(color: .black.opacity(0.25), radius: 4, y: 2)
+                .fixedSize()
+                .offset(y: h + 4 * scale)   // 단추 바로 아래, 오른쪽 끝 맞춤
+            }
+        }
+    }
+
+    /// 할 일 비우기 확인 줄(무엇을 지우는지 + 되돌릴 수 없음)
+    private var clearTodosConfirm: some View {
+        VStack(alignment: .leading, spacing: 4 * text) {
+            Text("할 일 \(store.document.todos.count)개를 모두 지울까요? 되돌릴 수 없어요.")
+                .font(.system(size: 11.5 * text, weight: .semibold))
+            HStack {
+                Spacer()
+                Button("취소") { confirmClearTodos = false }
+                Button("비우기", role: .destructive) {
+                    confirmClearTodos = false
+                    if model.todoEdit != nil { model.cancelTodoEdit() }
+                    store.clearTodos()
+                }
+            }
+            .font(.system(size: 11 * text))
+            .controlSize(.small)
+        }
+        .padding(6 * scale)
+        .background(RoundedRectangle(cornerRadius: 6 * scale).fill(Color.red.opacity(0.10)))
+        .padding(.bottom, 2 * scale)
     }
 
     /// 이 줄을 고치는 중이면 고칠 글에 연결된 값, 아니면 nil

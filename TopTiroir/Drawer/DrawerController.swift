@@ -13,6 +13,8 @@ final class DrawerModel {
         }
     }
     var maxHeight: CGFloat = 500
+    /// 서랍을 열 때마다 1씩 늘어난다(펼친 목록·확인 줄을 접는 신호).
+    var openCount = 0
     var contentHeight: CGFloat = 320
     /// 메모/할 일 영역 높이(끌어서 바꿈). 끄는 동안엔 화면에만, 손을 떼면 저장.
     var notesHeight: CGFloat = Layout.notesDefaultHeight
@@ -38,7 +40,8 @@ final class DrawerModel {
 
     @ObservationIgnored var onLayoutChange: (() -> Void)?
     @ObservationIgnored var onShowStatusItem: (() -> Void)?
-    @ObservationIgnored var onShowColorPanel: (() -> Void)?
+    /// 색상 창 열기: (저장할 설정 이름, 기본값)
+    @ObservationIgnored var onShowColorPanel: ((String, String) -> Void)?
     /// 투명도 슬라이드바를 끄는 동안 미리 보기 값(손을 떼면 nil)
     var windowOpacityPreview: Double?
     var textOpacityPreview: Double?
@@ -159,9 +162,9 @@ final class DrawerController {
         model.onLayoutChange = { [weak self] in
             DispatchQueue.main.async { self?.relayoutIfOpen() }
         }
-        model.onShowColorPanel = { [weak self] in
+        model.onShowColorPanel = { [weak self] key, fallback in
             guard let self else { return }
-            BandColorPanel.shared.show(nextTo: panel.frame, above: panel.level)
+            BandColorPanel.shared.show(key: key, fallback: fallback, nextTo: panel.frame, above: panel.level)
         }
     }
 
@@ -180,8 +183,14 @@ final class DrawerController {
         screen = s
         model.maxHeight = Layout.maxDrawerHeight(screenFrame: s.frame)
         relayout()
+        let wasOpen = isOpen
         panel.orderFrontRegardless()
         panel.makeKey()
+        // 열 때 아무 칸에도 글자 커서를 두지 않는다(들여쓰기 칸 등에 자동으로 커서가 가서 타자가 들어가지 않게).
+        if !wasOpen {
+            panel.makeFirstResponder(nil)
+            model.openCount += 1
+        }
         installMonitors()
     }
 
@@ -217,7 +226,19 @@ final class DrawerController {
         let frame = Layout.drawerFrame(screenFrame: s.frame, menuBarHeight: s.ttMenuBarHeight,
                                        contentHeight: hosting.fittingSize.height, scale: scale)
         if panel.frame != frame { panel.setFrame(frame, display: true) }
+        applyAppearance()
         panel.invalidateShadow()
+    }
+
+    /// 서랍만의 밝기 모양(맥 전체 화면 모드는 그대로). 직접 고른 색이면 그 밝기에 맞춰 글자색이 정해진다.
+    private func applyAppearance() {
+        let d = UserDefaults.standard
+        let dark = DrawerLook.isDark(
+            mode: DrawerColorMode(rawValue: d.string(forKey: SettingsKey.drawerColorMode) ?? "") ?? .standard,
+            appearance: DrawerAppearance(rawValue: d.string(forKey: SettingsKey.drawerAppearance) ?? "") ?? .system,
+            customHex: d.string(forKey: SettingsKey.drawerColor) ?? SettingsDefault.drawerColor)
+        let wanted: NSAppearance? = dark.map { NSAppearance(named: $0 ? .darkAqua : .aqua)! }
+        if panel.appearance?.name != wanted?.name { panel.appearance = wanted }
     }
 
     // MARK: 닫기 감시 (바깥 클릭, esc)
@@ -239,6 +260,15 @@ final class DrawerController {
                 return true
             }
             if recorded { return nil }
+            // 편집 단축키: 이 앱은 메뉴막대(편집 메뉴)가 없어 ⌘Z·⌘C 같은 키가 입력칸까지 가지 않는다.
+            // 그래서 여기서 지금 글자 커서가 있는 칸(첫 응답자)에 편집 명령을 직접 보낸다.
+            if let action = DrawerController.editAction(for: event) {
+                let handled = MainActor.assumeIsolated { () -> Bool in
+                    DrawerController.commitMarkedText(in: event.window)
+                    return NSApp.sendAction(action, to: nil, from: nil)
+                }
+                if handled { return nil }
+            }
             // ⌘Q: 어느 탭에서든 종료(저장 확인은 applicationShouldTerminate에서)
             if event.keyCode == 12, event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command {
                 MainActor.assumeIsolated { NSApp.terminate(nil) }
@@ -274,6 +304,23 @@ final class DrawerController {
         case .cancel: model.finishHotKeyRecording(nil)
         case .needsModifier: model.hotKeyMessage = "글자·숫자 키는 ⌘ 또는 ⌃와 함께 눌러 주세요. (F1~F20은 혼자 써도 돼요)"
         case .unsupported: model.hotKeyMessage = "이 키는 쓸 수 없어요. 다른 키를 눌러 주세요."
+        }
+    }
+
+    /// ⌘Z 되돌리기 · ⇧⌘Z 다시 실행 · ⌘X 잘라내기 · ⌘C 복사 · ⌘V 붙여넣기 · ⌘A 전체 선택
+    /// 키 위치(키 코드)로 편집 명령을 고른다(한글 입력 중에도 동작). 계산은 Core의 EditCommand.
+    nonisolated private static func editAction(for event: NSEvent) -> Selector? {
+        let f = event.modifierFlags
+        return EditCommand.from(keyCode: event.keyCode, command: f.contains(.command), shift: f.contains(.shift),
+                                option: f.contains(.option), control: f.contains(.control))
+            .map { Selector($0.selectorName) }
+    }
+
+    /// 한글 조합 중(밑줄 글자)이면 먼저 확정해서, 명령이 조합 중인 글자를 깨뜨리지 않게 한다.
+    private static func commitMarkedText(in window: NSWindow?) {
+        // 서랍은 앱을 활성으로 만들지 않아 NSApp.keyWindow가 비어 있을 수 있어, 키를 받은 창을 쓴다.
+        if let tv = window?.firstResponder as? NSTextView, tv.hasMarkedText() {
+            tv.unmarkText()
         }
     }
 
