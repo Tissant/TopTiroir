@@ -13,8 +13,8 @@ settings:
     DEVELOPMENT_TEAM: ""
     ENABLE_HARDENED_RUNTIME: YES
     DEAD_CODE_STRIPPING: YES
-    MARKETING_VERSION: 0.2.3
-    CURRENT_PROJECT_VERSION: 5
+    MARKETING_VERSION: 0.3.0
+    CURRENT_PROJECT_VERSION: 6
 targets:
   TopTiroir:
     type: application
@@ -24,6 +24,7 @@ targets:
       path: TopTiroir/Info.plist
       properties:
         CFBundleDisplayName: TopTiroir
+        CFBundleDevelopmentRegion: ko
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true

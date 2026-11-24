@@ -25,6 +25,15 @@ struct SettingsTabView: View {
     @AppStorage(SettingsKey.drawerAppearance) private var drawerAppearance = SettingsDefault.drawerAppearance
     @AppStorage(SettingsKey.drawerColor) private var drawerColorHex = SettingsDefault.drawerColor
     @State private var indentText = ""
+    @AppStorage(SettingsKey.keepAwakeMode) private var keepAwakeMode = SettingsDefault.keepAwakeMode
+    @AppStorage(SettingsKey.keepAwakeDuration) private var keepAwakeDuration = SettingsDefault.keepAwakeDuration
+    @AppStorage(SettingsKey.keepAwakeUntil) private var keepAwakeUntil = SettingsDefault.keepAwakeUntil
+    @AppStorage(SettingsKey.autoStopOnInput) private var autoStopOnInput = SettingsDefault.autoStopOnInput
+    @AppStorage(SettingsKey.autoStopOnBattery) private var autoStopOnBattery = SettingsDefault.autoStopOnBattery
+    @AppStorage(SettingsKey.autoStopOnLowBattery) private var autoStopOnLowBattery = SettingsDefault.autoStopOnLowBattery
+    @AppStorage(SettingsKey.autoStopLowBatteryPercent) private var lowBatteryPercent = SettingsDefault.autoStopLowBatteryPercent
+    @AppStorage(SettingsKey.indicatorStyle) private var indicatorStyle = SettingsDefault.indicatorStyle
+    @AppStorage(SettingsKey.indicatorColor) private var indicatorColorHex = SettingsDefault.indicatorColor
 
     /// 비우기 확인 중인 대상
     @State private var confirmClear: ClearTarget?
@@ -49,6 +58,8 @@ struct SettingsTabView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            section("화면 켜 두기") { keepAwakeRows }
+            Divider()
             section("화면") {
                 row("노치 숨기기") { toggle($hideNotch) }
                 row("화면 모서리 둥글게") { toggle($roundCorners) }
@@ -168,6 +179,138 @@ struct SettingsTabView: View {
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.bottom, 2 * scale)
+    }
+
+    // MARK: 화면 켜 두기
+
+    /// 화면 켜 두기 구역: 시간 설정 / 켜짐 표시 / 자동으로 끄기 3가지
+    @ViewBuilder private var keepAwakeRows: some View {
+        let ka = model.keepAwake
+        // 시간 설정: [이름][방식] 왼쪽, [시간 고르기][시작] 오른쪽. 켜져 있으면 [남은 시간] … [중지]
+        splitRow {
+            Text("시간 설정").font(font).lineLimit(1).fixedSize()
+            if ka.isRunning {
+                Text(ka.remainingText).font(font.monospacedDigit()).foregroundStyle(Brand.orange).fixedSize()
+            } else {
+                Picker("화면 켜 두기 방식", selection: $keepAwakeMode) {
+                    Text("선택…").tag("")
+                    ForEach(KeepAwakeMode.allCases, id: \.rawValue) { m in
+                        Text(m == .continuous && !ka.onAC ? "계속 (충전 중에만)" : m.title).tag(m.rawValue)
+                    }
+                }
+                .labelsHidden().pickerStyle(.menu).fixedSize()
+            }
+        } trailing: {
+            if ka.isRunning {
+                Button("중지") { ka.onStop?() }.font(controlFont)
+            } else if let mode = KeepAwakeMode(rawValue: keepAwakeMode) {
+                switch mode {
+                case .continuous:
+                    Text(ka.onAC ? "끌 때까지" : "충전 중에만")
+                        .font(controlFont).foregroundStyle(.secondary).fixedSize()
+                case .duration:
+                    Picker("시간", selection: Binding(get: { KeepAwake.clampedDuration(keepAwakeDuration) },
+                                                     set: { keepAwakeDuration = $0 })) {
+                        ForEach(KeepAwake.durations, id: \.self) { Text(KeepAwake.durationTitle($0)).tag($0) }
+                    }
+                    .labelsHidden().pickerStyle(.menu).fixedSize()
+                case .until:
+                    DatePicker("끝낼 시각", selection: untilBinding, displayedComponents: .hourAndMinute)
+                        .labelsHidden().datePickerStyle(.stepperField).font(controlFont).fixedSize()
+                    Text("까지").font(controlFont).fixedSize()
+                }
+                Button("시작") { ka.onStart?(plan(for: mode)) }
+                    .font(controlFont)
+                    .buttonStyle(.borderedProminent)
+                    .tint(Brand.orange)
+                    .disabled(mode == .continuous && !ka.onAC)
+            }
+        }
+        if let error = ka.startError, !ka.isRunning { note(error) }
+        // 켜짐 표시: [이름] 왼쪽, [효과][색] 오른쪽
+        splitRow {
+            Text("켜짐 표시").font(font).lineLimit(1).fixedSize()
+        } trailing: {
+            indicatorControl
+        }
+        row("키보드·마우스를 쓰면 끄기") { toggle($autoStopOnInput) }
+        row("배터리로 쓰면 끄기") { toggle($autoStopOnBattery) }
+        row("배터리가 너무 적으면 끄기") {
+            HStack(spacing: 4 * scale) {
+                Button("+") { lowBatteryPercent = KeepAwake.clampedLowBattery(lowBatteryPercent + 5) }
+                    .font(controlFont)
+                    .disabled(lowBatteryPercent >= KeepAwake.lowBatteryRange.upperBound)
+                Text("\(KeepAwake.clampedLowBattery(lowBatteryPercent))% 이하")
+                    .font(font.monospacedDigit()).fixedSize()
+                    .padding(.horizontal, 5 * scale)
+                    .background(RoundedRectangle(cornerRadius: 4 * scale).fill(.quaternary))
+                Button("−") { lowBatteryPercent = KeepAwake.clampedLowBattery(lowBatteryPercent - 5) }
+                    .font(controlFont)
+                    .disabled(lowBatteryPercent <= KeepAwake.lowBatteryRange.lowerBound)
+                toggle($autoStopOnLowBattery).padding(.leading, 4 * scale)
+            }
+        }
+    }
+
+    /// 왼쪽 묶음 … 오른쪽 묶음. 한 줄에 안 들어가면 오른쪽 묶음을 아래 줄 오른쪽에.
+    private func splitRow<L: View, T: View>(@ViewBuilder _ leading: () -> L,
+                                            @ViewBuilder trailing: () -> T) -> some View {
+        let l = leading(), t = trailing()
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 8 * scale) {
+                HStack(spacing: 8 * scale) { l }
+                Spacer(minLength: 8 * scale)
+                HStack(spacing: 6 * scale) { t }.fixedSize()
+            }
+            VStack(alignment: .leading, spacing: 2 * text) {
+                HStack(spacing: 8 * scale) { l }
+                HStack(spacing: 6 * scale) { Spacer(minLength: 0); t }
+            }
+        }
+        .frame(minHeight: 21 * text)
+    }
+
+    /// 시각까지: 저장된 「하루 중 몇 분째」 ↔ 오늘 날짜의 시각. 저장값이 없으면 지금 + 1시간(5분 단위).
+    private var untilBinding: Binding<Date> {
+        Binding(get: {
+            let cal = Calendar.current
+            let start = cal.startOfDay(for: Date())
+            var minute = keepAwakeUntil
+            if minute < 0 {
+                let c = cal.dateComponents([.hour, .minute], from: Date().addingTimeInterval(3600))
+                minute = ((c.hour ?? 0) * 60 + (c.minute ?? 0)) / 5 * 5
+            }
+            return cal.date(byAdding: .minute, value: minute, to: start) ?? Date()
+        }, set: { date in
+            let c = Calendar.current.dateComponents([.hour, .minute], from: date)
+            keepAwakeUntil = (c.hour ?? 0) * 60 + (c.minute ?? 0)
+        })
+    }
+
+    private func plan(for mode: KeepAwakeMode) -> KeepAwakePlan {
+        let c = Calendar.current.dateComponents([.hour, .minute], from: untilBinding.wrappedValue)
+        return KeepAwakePlan(mode: mode, durationMinutes: KeepAwake.clampedDuration(keepAwakeDuration),
+                             untilMinuteOfDay: (c.hour ?? 0) * 60 + (c.minute ?? 0))
+    }
+
+    // MARK: 켜짐 표시
+
+    private var indicatorControl: some View {
+        HStack(spacing: 6 * scale) {
+            Picker("켜짐 표시", selection: Binding(get: { IndicatorStyle.resolve(indicatorStyle).rawValue },
+                                                set: { indicatorStyle = $0 })) {
+                ForEach(IndicatorStyle.allCases, id: \.rawValue) { Label($0.title, systemImage: $0.symbol).tag($0.rawValue) }
+            }
+            .labelsHidden().pickerStyle(.menu).fixedSize()
+            Button { model.onShowColorPanel?(SettingsKey.indicatorColor, SettingsDefault.indicatorColor) } label: {
+                RoundedRectangle(cornerRadius: 4 * scale)
+                    .fill(Color(nsColor: NSColor(ttHex: indicatorColorHex)))
+                    .overlay(RoundedRectangle(cornerRadius: 4 * scale).stroke(palette.divider, lineWidth: 1))
+                    .frame(width: 26 * scale, height: 15 * text)
+            }
+            .buttonStyle(.plain)
+            .help("켜짐 표시 색 고르기 (\(indicatorColorHex))")
+        }
     }
 
     // MARK: 서랍·창 색상

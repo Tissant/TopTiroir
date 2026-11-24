@@ -71,14 +71,36 @@ struct DrawerRootView: View {
             // 모든 탭이 같은 길이(손잡이로 정함). 내용이 길면 탭 안에서 스크롤.
             let contentMax = max(available - 6 * s, 0)
             let contentHeight = Layout.clampedNotesHeight(model.notesHeight, maxHeight: contentMax)
-            if model.tab == .notes {
-                NotesTabView(model: model, height: contentHeight, scale: s, text: t, palette: palette)
-            } else {
-                ScrollView {
-                    tabContent(palette)
+            Group {
+                if model.tab == .notes {
+                    NotesTabView(model: model, height: contentHeight, scale: s, text: t, palette: palette)
+                } else {
+                    ScrollView {
+                        tabContent(palette)
+                    }
+                    .scrollBounceBehavior(.basedOnSize)
+                    .frame(height: contentHeight + 6 * s)
                 }
-                .scrollBounceBehavior(.basedOnSize)
-                .frame(height: contentHeight + 6 * s)
+            }
+            .overlay(alignment: .top) {
+                // 화면 켜 두기가 자동으로 꺼진 이유(서랍을 닫으면 사라짐)
+                if let notice = model.keepAwake.notice {
+                    Text(notice)
+                        .font(.system(size: 11 * t, weight: .medium))
+                        .padding(.horizontal, 10 * s)
+                        .padding(.vertical, 5 * s)
+                        .background(Capsule().fill(.regularMaterial))
+                        .overlay(Capsule().stroke(Brand.orange.opacity(0.7), lineWidth: 1))
+                        .padding(.top, 8 * s)
+                        .onTapGesture { model.keepAwake.notice = nil }
+                        .help("눌러서 닫기")
+                }
+            }
+            // 서랍이 열려 있는 동안 안내가 보이면 5초 뒤 저절로 사라진다(한 번만).
+            .task(id: "\(model.isDrawerOpen)-\(model.keepAwake.notice ?? "")") {
+                guard model.isDrawerOpen, model.keepAwake.notice != nil else { return }
+                try? await Task.sleep(for: .seconds(5))
+                if !Task.isCancelled { model.keepAwake.notice = nil }
             }
             handle(palette, maxHeight: contentMax)
         }

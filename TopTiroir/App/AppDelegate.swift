@@ -7,9 +7,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let drawer = DrawerController()
     private let statusItem = TemporaryStatusItem()
     private var hotKey: HotKey?
+    private let keepAwake = KeepAwakeController()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         registerDefaults()
+        migrateSettings()
         DrawerController.shared = drawer
 
         drawer.model.onShowStatusItem = { [weak self] in self?.statusItem.show() }
@@ -24,6 +26,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         setUpHotKey()
+        drawer.model.keepAwake = keepAwake.model
+        keepAwake.closeDrawer = { [weak self] in self?.drawer.close() }
+        drawer.model.onDrawerOpened = { [weak self] in self?.keepAwake.refreshForDrawer() }
+        // 자동으로 꺼진 이유는 한 번만: 서랍을 닫거나 연 지 5초가 지나면 지운다(DrawerRootView).
+        drawer.model.onDrawerClosed = { [weak self] in self?.keepAwake.model.notice = nil }
         drawer.model.onPendingResolved = { [weak self] action, proceed in
             switch action {
             case .close: if proceed { self?.drawer.close() }
@@ -54,6 +61,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        keepAwake.stop(reason: .stopped)   // 화면 켜 두기 어서션을 꼭 푼다
         drawer.model.notes.saveNow()
         decorations.removeAll()
         statusItem.hide()
@@ -61,11 +69,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func screensChanged() {
         refreshDecorations()
+        keepAwake.refreshIndicator(force: true)
         drawer.screensChanged()
     }
 
     @objc private func settingsChanged() {
         refreshDecorations()
+        keepAwake.settingsChanged()
         drawer.relayoutIfOpen()
     }
 
@@ -107,6 +117,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// 없어진 켜짐 표시 「노치 손잡이 불빛」을 고른 적이 있으면 막대로 바꿔 둔다.
+    private func migrateSettings() {
+        let d = UserDefaults.standard
+        if let raw = d.string(forKey: SettingsKey.indicatorStyle), IndicatorStyle(rawValue: raw) == nil {
+            d.set(IndicatorStyle.resolve(raw).rawValue, forKey: SettingsKey.indicatorStyle)
+        }
+    }
+
     private func registerDefaults() {
         UserDefaults.standard.register(defaults: [
             SettingsKey.hideNotch: SettingsDefault.hideNotch,
@@ -126,6 +144,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             SettingsKey.lastTab: SettingsDefault.lastTab,
             SettingsKey.notesHeight: SettingsDefault.notesHeight,
             SettingsKey.memoRatio: SettingsDefault.memoRatio,
+            SettingsKey.keepAwakeMode: SettingsDefault.keepAwakeMode,
+            SettingsKey.keepAwakeDuration: SettingsDefault.keepAwakeDuration,
+            SettingsKey.keepAwakeUntil: SettingsDefault.keepAwakeUntil,
+            SettingsKey.autoStopOnInput: SettingsDefault.autoStopOnInput,
+            SettingsKey.autoStopOnBattery: SettingsDefault.autoStopOnBattery,
+            SettingsKey.autoStopOnLowBattery: SettingsDefault.autoStopOnLowBattery,
+            SettingsKey.autoStopLowBatteryPercent: SettingsDefault.autoStopLowBatteryPercent,
+            SettingsKey.indicatorStyle: SettingsDefault.indicatorStyle,
+            SettingsKey.indicatorColor: SettingsDefault.indicatorColor,
             SettingsKey.hotKeyCode: SettingsDefault.hotKeyCode,
             SettingsKey.hotKeyModifiers: SettingsDefault.hotKeyModifiers,
         ])

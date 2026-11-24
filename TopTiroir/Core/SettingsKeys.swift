@@ -17,6 +17,16 @@ enum SettingsKey {
     static let lastTab = "lastTab"
     static let notesHeight = "notesHeight"   // v0.2.2부터 모든 탭이 같이 쓰는 서랍 내용 높이
     static let memoRatio = "memoRatio"
+    // 화면 켜 두기(마지막 선택만 저장, 켜짐 상태는 저장하지 않음)
+    static let keepAwakeMode = "keepAwakeMode"
+    static let keepAwakeDuration = "keepAwakeDuration"
+    static let keepAwakeUntil = "keepAwakeUntil"
+    static let autoStopOnInput = "autoStopOnInput"
+    static let autoStopOnBattery = "autoStopOnBattery"
+    static let autoStopOnLowBattery = "autoStopOnLowBattery"
+    static let autoStopLowBatteryPercent = "autoStopLowBatteryPercent"
+    static let indicatorStyle = "indicatorStyle"
+    static let indicatorColor = "indicatorColor"
     static let hotKeyCode = "hotKeyCode"
     static let hotKeyModifiers = "hotKeyModifiers"
 
@@ -42,6 +52,15 @@ enum SettingsDefault {
     static let lastTab = DrawerTab.notes.rawValue
     static let notesHeight = Double(Layout.notesDefaultHeight)
     static let memoRatio = Layout.memoRatioDefault
+    static let keepAwakeMode = ""          // 처음엔 「선택…」
+    static let keepAwakeDuration = KeepAwake.defaultDuration
+    static let keepAwakeUntil = -1         // 저장값 없음: 지금 + 1시간을 보여 줌
+    static let autoStopOnInput = false
+    static let autoStopOnBattery = true
+    static let autoStopOnLowBattery = true
+    static let autoStopLowBatteryPercent = 20
+    static let indicatorStyle = IndicatorStyle.bar.rawValue
+    static let indicatorColor = "#F5A623"
     static let hotKeyCode = Int(Shortcut.f12.keyCode)
     static let hotKeyModifiers = Int(Shortcut.f12.modifiers)
 }

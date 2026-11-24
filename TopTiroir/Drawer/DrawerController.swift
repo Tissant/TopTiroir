@@ -20,11 +20,17 @@ final class DrawerModel {
     var maxHeight: CGFloat = 500
     /// 서랍을 열 때마다 1씩 늘어난다(펼친 목록·확인 줄을 접는 신호).
     var openCount = 0
+    /// 서랍이 지금 열려 있는지(안내 5초 타이머용)
+    var isDrawerOpen = false
     var contentHeight: CGFloat = 320
     /// 메모/할 일 영역 높이(끌어서 바꿈). 끄는 동안엔 화면에만, 손을 떼면 저장.
     var notesHeight: CGFloat = Layout.notesDefaultHeight
 
     let notes = NotesStore()
+    /// 화면 켜 두기(AppDelegate가 KeepAwakeController의 모델로 바꿔 끼운다)
+    var keepAwake = KeepAwakeModel()
+    @ObservationIgnored var onDrawerOpened: (() -> Void)?
+    @ObservationIgnored var onDrawerClosed: (() -> Void)?
 
     // 할 일 고치기
     struct TodoEdit: Equatable {
@@ -295,6 +301,8 @@ final class DrawerController {
         if !wasOpen {
             panel.makeFirstResponder(nil)
             model.openCount += 1
+            model.isDrawerOpen = true
+            model.onDrawerOpened?()
         }
         installMonitors()
     }
@@ -307,6 +315,8 @@ final class DrawerController {
         panel.orderOut(nil)
         closeAuxiliaryWindows()
         removeMonitors()
+        model.isDrawerOpen = false
+        model.onDrawerClosed?()
         model.notes.saveNow()
     }
 

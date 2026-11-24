@@ -38,4 +38,38 @@ enum HexColor {
         let l = luminance(rgb)
         return (l + 0.05) / 0.05 > 1.05 / (l + 0.05)
     }
+
+    /// 같은 색에서 밝은 색(하이라이트): 흰색 쪽으로 amount만큼
+    static func lightened(_ rgb: RGB, by amount: Double) -> RGB {
+        let a = min(max(amount, 0), 1)
+        func mix(_ c: Double) -> Double { c + (1 - c) * a }
+        return RGB(red: mix(rgb.red), green: mix(rgb.green), blue: mix(rgb.blue))
+    }
+
+    /// 색상환에서 degrees만큼 돌린 색(밝기·채도 유지). 오로라 그라데이션의 비슷한 색들.
+    static func hueShifted(_ rgb: RGB, by degrees: Double) -> RGB {
+        let r = rgb.red, g = rgb.green, b = rgb.blue
+        let maxV = max(r, g, b), minV = min(r, g, b), d = maxV - minV
+        var h = 0.0
+        if d > 0 {
+            if maxV == r { h = ((g - b) / d).truncatingRemainder(dividingBy: 6) }
+            else if maxV == g { h = (b - r) / d + 2 }
+            else { h = (r - g) / d + 4 }
+            h *= 60
+        }
+        let s = maxV == 0 ? 0 : d / maxV, v = maxV
+        var nh = (h + degrees).truncatingRemainder(dividingBy: 360)
+        if nh < 0 { nh += 360 }
+        let c = v * s, x = c * (1 - abs((nh / 60).truncatingRemainder(dividingBy: 2) - 1)), m = v - c
+        let (r1, g1, b1): (Double, Double, Double)
+        switch nh {
+        case ..<60: (r1, g1, b1) = (c, x, 0)
+        case ..<120: (r1, g1, b1) = (x, c, 0)
+        case ..<180: (r1, g1, b1) = (0, c, x)
+        case ..<240: (r1, g1, b1) = (0, x, c)
+        case ..<300: (r1, g1, b1) = (x, 0, c)
+        default: (r1, g1, b1) = (c, 0, x)
+        }
+        return RGB(red: r1 + m, green: g1 + m, blue: b1 + m)
+    }
 }
