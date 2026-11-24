@@ -119,4 +119,12 @@ enum Layout {
             (.topRight, CGRect(x: f.maxX - r, y: top - r, width: r, height: r)),
         ]
     }
+
+    /// 창을 화면 보이는 영역 한가운데(약간 위)에 놓을 때의 왼쪽 아래 좌표. 창이 화면보다 크면 화면 안쪽 가장자리에 맞춘다.
+    static func centeredOrigin(size: CGSize, in visible: CGRect) -> CGPoint {
+        let x = visible.midX - size.width / 2
+        let y = visible.midY - size.height / 2 + visible.height * 0.05
+        return CGPoint(x: max(visible.minX, min(x, visible.maxX - size.width)),
+                       y: max(visible.minY, min(y, visible.maxY - size.height)))
+    }
 }

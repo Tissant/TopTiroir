@@ -1,6 +1,7 @@
 import AppKit
 import Observation
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// 서랍 화면과 AppKit 쪽이 함께 보는 상태
 @MainActor
@@ -69,6 +70,49 @@ final class DrawerModel {
             columnStack = FavoriteColumns.toggle(item.id, fromLevel: level, stack: columnStack)
         }
     }
+    // MARK: 내보내기·가져오기 (설정 › 관리)
+
+    /// 「내보내기…」: 저장 창 띄우기
+    @ObservationIgnored var onExportBackup: (() -> Void)?
+    /// 「가져오기…」: 고르기 창 띄우기 → 읽으면 pendingImport에 넣고 설정 탭에서 확인
+    @ObservationIgnored var onImportBackup: (() -> Void)?
+    /// 고른 백업 파일(확인 줄을 보이는 동안)
+    var pendingImport: BackupFile?
+    /// 내보내기·가져오기 결과 한 줄
+    var backupMessage: String?
+
+    /// 지금 내용을 백업 파일로
+    func makeBackup() -> BackupFile {
+        notes.saveNow()
+        favorites.saveNow()
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
+        return BackupFile(exportedAt: Date(), appVersion: version,
+                          notes: notes.document, favorites: favorites.document)
+    }
+
+    /// 확인 줄에서 「가져오기」: 고른 부분만 바꾼다(각각 바꾸기 직전 상태를 백업 파일로 남김).
+    func applyImport(notes takeNotes: Bool, favorites takeFavorites: Bool) {
+        guard let file = pendingImport else { return }
+        pendingImport = nil
+        var done: [String] = [], failed: [String] = []
+        if takeNotes, let n = file.notes {
+            todoEdit = nil
+            if notes.replace(with: n) { done.append("메모·할 일") } else { failed.append("메모·할 일") }
+        }
+        if takeFavorites, let f = file.favorites {
+            favoritesEditing = false
+            columnStack = []
+            if favorites.replace(with: f) { done.append("즐겨찾기") } else { failed.append("즐겨찾기") }
+        }
+        if !failed.isEmpty {
+            backupMessage = "\(failed.joined(separator: "·"))는 지금 내용을 백업하지 못해 바꾸지 않았어요."
+        } else if done.isEmpty {
+            backupMessage = "아무것도 가져오지 않았어요."
+        } else {
+            backupMessage = "\(done.joined(separator: "·"))를 가져왔어요. 바꾸기 전 내용은 백업 파일로 남겼어요."
+        }
+    }
+
     /// 화면 켜 두기(AppDelegate가 KeepAwakeController의 모델로 바꿔 끼운다)
     var keepAwake = KeepAwakeModel()
     @ObservationIgnored var onDrawerOpened: (() -> Void)?
@@ -323,6 +367,8 @@ final class DrawerController {
         // 열어도 바로 닫지 않고, 마우스가 서랍·폴더 창 밖으로 나가면 닫는다(여러 개를 이어서 열 수 있게).
         model.onFavoriteOpened = { [weak self] in self?.closeWhenMouseLeaves() }
         model.onChooseFiles = { [weak self] path in self?.chooseFiles(into: path) }
+        model.onExportBackup = { [weak self] in self?.exportBackup() }
+        model.onImportBackup = { [weak self] in self?.importBackup() }
         model.onTabChanged = { [weak self] tab in
             guard let self else { return }
             // 즐겨찾기에서 벗어나면 폴더 창·수정 모드 끝, 설정에서 벗어나면 단축키·색상 창 닫기(돌아와도 다시 열지 않음).
@@ -511,6 +557,34 @@ final class DrawerController {
         }
     }
 
+    /// 고르기·저장 창이 떠 있는 동안 true(바깥 클릭으로 서랍이 닫히지 않게 함)
+    private(set) var filePanelOpen = false
+
+    /// 고르기·저장 창을 서랍이 열려 있는 화면 한가운데에 띄운다. 끝난 뒤에도 잠깐 서랍을 유지한다.
+    private func present(_ p: NSSavePanel, completion: @escaping @MainActor (NSApplication.ModalResponse) -> Void) {
+        p.level = NSWindow.Level(rawValue: panel.level.rawValue + 2)
+        let target = screen
+        func place() {
+            guard let s = target else { return }
+            p.setFrameOrigin(Layout.centeredOrigin(size: p.frame.size, in: s.visibleFrame))
+        }
+        place()
+        filePanelOpen = true
+        NSApp.activate()
+        p.begin { [weak self] response in
+            MainActor.assumeIsolated {
+                completion(response)
+                // 창 안 마지막 클릭이 뒤늦게 전달돼도 닫히지 않도록 잠깐 더 유지
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(for: .milliseconds(700))
+                    self?.filePanelOpen = false
+                }
+            }
+        }
+        // 창이 뜬 뒤 저장돼 있던 옛 위치로 가 있으면 다시 맞춘다.
+        DispatchQueue.main.async { if p.screen != target { place() } }
+    }
+
     /// 앱·파일·폴더 고르기(여러 개). 열려 있는 동안 서랍은 닫히지 않는다(같은 앱의 창이라서).
     private func chooseFiles(into path: [UUID]) {
         let open = NSOpenPanel()
@@ -520,12 +594,55 @@ final class DrawerController {
         open.treatsFilePackagesAsDirectories = false
         open.prompt = "추가"
         open.message = "즐겨찾기에 넣을 앱·파일·Finder 폴더를 고르세요. 위치만 기억하고 복사하지 않아요."
-        open.level = NSWindow.Level(rawValue: panel.level.rawValue + 2)
-        NSApp.activate()
-        open.begin { [weak self] response in
-            MainActor.assumeIsolated {
-                guard response == .OK, let self else { return }
-                self.model.favorites.add(urls: open.urls, at: path)
+        present(open) { [weak self] response in
+            guard response == .OK, let self else { return }
+            self.model.favorites.add(urls: open.urls, at: path)
+        }
+    }
+
+    /// 메모·할 일·즐겨찾기를 파일 하나로 저장(내 계정만 읽고 쓰게 600). 열려 있는 동안 서랍은 닫히지 않는다.
+    private func exportBackup() {
+        let save = NSSavePanel()
+        save.nameFieldStringValue = BackupFile.suggestedFileName(date: Date())
+        save.allowedContentTypes = [.json]
+        save.canCreateDirectories = true
+        save.prompt = "내보내기"
+        save.message = "메모·할 일·즐겨찾기를 파일 하나로 저장해요. 메모 글이 그대로 들어 있으니 안전한 곳에 두세요."
+        present(save) { [weak self] response in
+            guard response == .OK, let self, let url = save.url else { return }
+            do {
+                try self.model.makeBackup().encoded().write(to: url, options: [.atomic])
+                try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+                self.model.backupMessage = "\(url.lastPathComponent)로 내보냈어요."
+            } catch {
+                self.model.backupMessage = "내보내지 못했어요: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    /// 백업 파일 고르기 → 읽어서 설정 탭에 확인 줄을 띄운다(바로 바꾸지 않음).
+    private func importBackup() {
+        let open = NSOpenPanel()
+        open.canChooseFiles = true
+        open.canChooseDirectories = false
+        open.allowsMultipleSelection = false
+        open.allowedContentTypes = [.json]
+        open.prompt = "고르기"
+        open.message = "가져올 TopTiroir 백업 파일을 고르세요. 바꾸기 전에 한 번 더 확인해요."
+        present(open) { [weak self] response in
+            guard response == .OK, let self, let url = open.url else { return }
+            // 너무 큰 파일은 읽지 않는다(실수로 다른 파일을 고른 경우).
+            let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+            guard size <= 20_000_000, let data = try? Data(contentsOf: url) else {
+                self.model.backupMessage = "파일을 읽지 못했어요."
+                return
+            }
+            switch BackupFile.decode(data) {
+            case .success(let file):
+                self.model.backupMessage = nil
+                self.model.pendingImport = file
+            case .failure(let problem):
+                self.model.backupMessage = problem.message
             }
         }
     }
@@ -567,6 +684,8 @@ final class DrawerController {
             MainActor.assumeIsolated {
                 let mode = UserDefaults.standard.string(forKey: SettingsKey.closeMode)
                 // 즐겨찾기 수정 중에는 닫지 않는다(다른 앱에서 끌어 오려고 누른 것).
+                // 고르기·저장 창이 떠 있는 동안에는 닫지 않는다(이 창은 다른 프로세스라 안의 클릭이 바깥 클릭으로 보임).
+                if DrawerController.shared?.filePanelOpen == true { return }
                 if FavoritesEditRules.autoCloses(editing: DrawerController.shared?.model.favoritesEditing == true,
                                                  closeMode: CloseMode(rawValue: mode ?? "") ?? .outsideOrEsc) {
                     DrawerController.shared?.close()

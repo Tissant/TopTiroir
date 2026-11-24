@@ -45,6 +45,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                            name: UserDefaults.didChangeNotification, object: nil)
 
         refreshDecorations()
+        LoginItem.reregisterIfMoved()
     }
 
     /// 앱을 다시 실행하면(Finder·Spotlight) 서랍을 연다. 아이콘이 없는 앱의 비상구.

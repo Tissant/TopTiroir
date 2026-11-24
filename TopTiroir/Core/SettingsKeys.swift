@@ -1,5 +1,7 @@
 /// 설정 이름(UserDefaults 키)과 기본값. 화면(@AppStorage)과 동작 코드가 같은 값을 쓰도록 한곳에 모은다.
 enum SettingsKey {
+    /// 로그인 자동 실행을 마지막으로 등록한 앱 위치(설치 후 다시 등록할지 판단)
+    static let loginItemPath = "loginItemPath"
     static let hideNotch = "hideNotch"
     static let roundCorners = "roundCorners"
     static let bandColor = "bandColor"

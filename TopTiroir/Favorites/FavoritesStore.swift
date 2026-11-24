@@ -377,9 +377,31 @@ final class FavoritesStore {
     }
 
     /// 지우기·이름 바꾸기 직전 상태를 favorites.backup.json 한 개로(덮어씀)
-    private func backup() {
-        do { try write(document, to: backupFileURL) }
-        catch { favLog.error("즐겨찾기 백업 실패: \(error.localizedDescription, privacy: .public)") }
+    @discardableResult
+    private func backup() -> Bool {
+        do {
+            try write(document, to: backupFileURL)
+            return true
+        } catch {
+            favLog.error("즐겨찾기 백업 실패: \(error.localizedDescription, privacy: .public)")
+            return false
+        }
+    }
+
+    // MARK: 가져오기 (설정 › 관리)
+
+    /// 백업 파일의 즐겨찾기로 바꾼다. 바꾸기 직전 상태를 favorites.backup.json에 남기고, 백업에 실패하면 바꾸지 않는다.
+    /// 3단계보다 깊은 폴더는 불러올 때와 같이 한 단계씩 끌어올린다.
+    @discardableResult
+    func replace(with doc: FavoritesDocument) -> Bool {
+        guard !saveBlocked, backup() else { return false }
+        var d = doc
+        _ = d.flattenTooDeep()
+        document = d
+        refreshMissing()
+        changed()
+        saveNow()
+        return true
     }
 
     private func write(_ doc: FavoritesDocument, to url: URL) throws {

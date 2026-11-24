@@ -15,6 +15,7 @@
 		21FB4B21535FBC7132F45130 /* FavoritesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 902C35A9F9B12DAB6CAC6FA1 /* FavoritesStore.swift */; };
 		2439726D55AAD00CC2BB24B7 /* IndicatorOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6DAB603C734A62AD42537F /* IndicatorOverlay.swift */; };
 		257701908D3CD0F7A5C5F336 /* V023Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F04A0625AE172265BF09FD7 /* V023Tests.swift */; };
+		25F04643E54F8CC5F13E85AB /* BackupFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498B00E68935B8F40D049424 /* BackupFile.swift */; };
 		2736AFCE82CBB031030158D4 /* MemoTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A18CE8CBCF7DAA09E210BCB /* MemoTextView.swift */; };
 		2B60FEC00216899B83DDD116 /* ShortcutSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756E606FBC614AF38F29A5BE /* ShortcutSet.swift */; };
 		2BCB7CE3BB078474FB327828 /* V02Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34E4BAABA38B35F6E5F9173B /* V02Tests.swift */; };
@@ -34,6 +35,7 @@
 		9038C8B78E6B2D386276CF72 /* DrawerRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F2F30A5B034B0D914CC3B1 /* DrawerRootView.swift */; };
 		92B00BCA2430BD9D28AB055D /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837E36546438827FF3EEB71F /* main.swift */; };
 		92D8046B640BFFCC7F94E23F /* SettingsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C5153CE28F64E8AEDC1AE21 /* SettingsKeys.swift */; };
+		938DBDFD72D32F9B2D06941B /* V050Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4697639D1F1A2A93DD097C0E /* V050Tests.swift */; };
 		93F18C8BE17C0639BFF10FA0 /* EditCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916BC2A9C577E6CB35067081 /* EditCommand.swift */; };
 		9468F3FA1D0C4999366D4831 /* DrawerSizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA2784087280F846FB4FC7C /* DrawerSizing.swift */; };
 		9BB51B5052B03E75E028623B /* KeepAwake.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39359E99BD1854414BBCBDE3 /* KeepAwake.swift */; };
@@ -59,6 +61,7 @@
 		DB8248E056F60EE1FE84C6A6 /* DrawerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC57612D92F3A208A63E6029 /* DrawerController.swift */; };
 		E0838C2CC5739A42981BE78A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA38F9DA2F5F8A52D041181A /* AppDelegate.swift */; };
 		EB9CB0D5702911E53B9712F9 /* DrawerSizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA2784087280F846FB4FC7C /* DrawerSizing.swift */; };
+		F42079675F72332ADABDE83A /* BackupFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498B00E68935B8F40D049424 /* BackupFile.swift */; };
 		FC46FDC7701340A60498B593 /* Shortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EBC25EEB88270002AA48674 /* Shortcut.swift */; };
 		FE9262E243613A51EF5C5EB3 /* Indent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C52E6A1347875A504FA26784 /* Indent.swift */; };
 /* End PBXBuildFile section */
@@ -74,6 +77,8 @@
 		2E462402B2A4CF5C85EE793A /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
 		34E4BAABA38B35F6E5F9173B /* V02Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V02Tests.swift; sourceTree = "<group>"; };
 		39359E99BD1854414BBCBDE3 /* KeepAwake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepAwake.swift; sourceTree = "<group>"; };
+		4697639D1F1A2A93DD097C0E /* V050Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V050Tests.swift; sourceTree = "<group>"; };
+		498B00E68935B8F40D049424 /* BackupFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupFile.swift; sourceTree = "<group>"; };
 		4E87107AB9AF1BF46DCE1FF7 /* DrawerTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawerTab.swift; sourceTree = "<group>"; };
 		504529CB1FDE9A5009B8CCBE /* TemporaryStatusItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryStatusItem.swift; sourceTree = "<group>"; };
 		523FC1C1ADC6E9A994322AFA /* TopTiroirTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TopTiroirTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -151,6 +156,7 @@
 				1F04A0625AE172265BF09FD7 /* V023Tests.swift */,
 				797C246282C63281AAD6055C /* V030Tests.swift */,
 				5E445E4A4B600CEE4C2A0078 /* V040Tests.swift */,
+				4697639D1F1A2A93DD097C0E /* V050Tests.swift */,
 			);
 			path = TopTiroirTests;
 			sourceTree = "<group>";
@@ -158,6 +164,7 @@
 		4FC54BD6150F620700777DE7 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				498B00E68935B8F40D049424 /* BackupFile.swift */,
 				7CA2784087280F846FB4FC7C /* DrawerSizing.swift */,
 				4E87107AB9AF1BF46DCE1FF7 /* DrawerTab.swift */,
 				916BC2A9C577E6CB35067081 /* EditCommand.swift */,
@@ -345,6 +352,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E0838C2CC5739A42981BE78A /* AppDelegate.swift in Sources */,
+				F42079675F72332ADABDE83A /* BackupFile.swift in Sources */,
 				1DA53E10F2911C5852D4ECC9 /* BandColorPanel.swift in Sources */,
 				DB8248E056F60EE1FE84C6A6 /* DrawerController.swift in Sources */,
 				9038C8B78E6B2D386276CF72 /* DrawerRootView.swift in Sources */,
@@ -385,6 +393,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				25F04643E54F8CC5F13E85AB /* BackupFile.swift in Sources */,
 				9468F3FA1D0C4999366D4831 /* DrawerSizing.swift in Sources */,
 				7C353473763C1B86860419BD /* DrawerTab.swift in Sources */,
 				A42E27CB4040AC0ED3DEC302 /* EditCommand.swift in Sources */,
@@ -404,6 +413,7 @@
 				2BCB7CE3BB078474FB327828 /* V02Tests.swift in Sources */,
 				028AA18B2F10D32FE4B82A83 /* V030Tests.swift in Sources */,
 				3EAAC93A0337C47DBD1507CC /* V040Tests.swift in Sources */,
+				938DBDFD72D32F9B2D06941B /* V050Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -446,6 +456,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -478,7 +489,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
@@ -500,7 +511,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.5.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -548,6 +559,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -580,7 +592,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
@@ -596,7 +608,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.5.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

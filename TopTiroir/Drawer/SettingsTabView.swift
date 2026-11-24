@@ -41,6 +41,8 @@ struct SettingsTabView: View {
     @State private var loginEnabled = LoginItem.isEnabled
     @State private var loginMessage: String?
     @State private var statusItemShown = false
+    @State private var importNotes = true
+    @State private var importFavorites = true
 
     private var font: Font { .system(size: 12 * text) }
 
@@ -137,6 +139,27 @@ struct SettingsTabView: View {
             section("관리") {
                 clearRow(.memo)
                 if let clearMessage { note(clearMessage) }
+                row("메모·즐겨찾기 내보내기") {
+                    Button("내보내기…") {
+                        model.backupMessage = nil
+                        model.onExportBackup?()
+                    }
+                    .font(controlFont)
+                    .help("메모·할 일·즐겨찾기를 파일 하나(.json)로 저장해요")
+                }
+                if let file = model.pendingImport {
+                    importConfirm(file)
+                } else {
+                    row("메모·즐겨찾기 가져오기") {
+                        Button("가져오기…") {
+                            model.backupMessage = nil
+                            model.onImportBackup?()
+                        }
+                        .font(controlFont)
+                        .help("내보낸 백업 파일에서 메모·할 일·즐겨찾기를 되살려요")
+                    }
+                }
+                if let message = model.backupMessage { note(message) }
                 row("메뉴막대 아이콘 잠깐 보이기") {
                     Button(statusItemShown ? "60초 동안 보임" : "보이기") {
                         model.onShowStatusItem?()
@@ -437,6 +460,49 @@ struct SettingsTabView: View {
         confirmClear = nil
         let ok = target == .memo ? model.notes.clearMemo() : model.notes.clearTodos()
         clearMessage = ok ? nil : "백업 파일을 만들지 못해 지우지 않았어요."
+    }
+
+    // MARK: 가져오기 확인
+
+    /// 고른 백업 파일 내용과 지금 내용을 보여 주고, 바꿀 부분을 고른 뒤 「가져오기」를 눌러야 바꾼다.
+    @ViewBuilder private func importConfirm(_ file: BackupFile) -> some View {
+        let hasNotes = file.notes != nil, hasFavs = file.favorites != nil
+        VStack(alignment: .leading, spacing: 4 * text) {
+            Text("백업 파일 내용으로 바꿀까요?")
+                .font(.system(size: 11.5 * text, weight: .semibold))
+            Text("파일(\(Self.dateText(file.exportedAt))): \(BackupFile.summary(notes: file.notes, favorites: file.favorites))")
+                .font(.system(size: 11 * text)).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Text("지금: \(BackupFile.summary(notes: hasNotes ? model.notes.document : nil, favorites: hasFavs ? model.favorites.document : nil))")
+                .font(.system(size: 11 * text)).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if hasNotes {
+                Toggle("메모·할 일 바꾸기", isOn: $importNotes).toggleStyle(.checkbox).font(.system(size: 11 * text))
+            }
+            if hasFavs {
+                Toggle("즐겨찾기 바꾸기", isOn: $importFavorites).toggleStyle(.checkbox).font(.system(size: 11 * text))
+            }
+            Text("지금 내용은 바꾸기 직전에 백업 파일로 남겨요(각각 1개, 다음 백업 때 덮어씀).")
+                .font(.system(size: 10.5 * text)).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack {
+                Spacer()
+                Button("취소") { model.pendingImport = nil }
+                Button("가져오기", role: .destructive) {
+                    model.applyImport(notes: hasNotes && importNotes, favorites: hasFavs && importFavorites)
+                    importNotes = true
+                    importFavorites = true
+                }
+                .disabled(!(hasNotes && importNotes) && !(hasFavs && importFavorites))
+            }
+        }
+        .padding(6 * scale)
+        .background(RoundedRectangle(cornerRadius: 6 * scale).fill(Color.orange.opacity(0.12)))
+        .padding(.vertical, 2 * text)
+    }
+
+    private static func dateText(_ date: Date) -> String {
+        date.formatted(.dateTime.year().month().day().hour().minute())
     }
 
     // MARK: 줄·구역

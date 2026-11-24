@@ -87,6 +87,19 @@ final class NotesStore {
         return true
     }
 
+    // MARK: 가져오기 (설정 › 관리)
+
+    /// 백업 파일의 메모·할 일로 바꾼다. 바꾸기 직전 상태를 notes.backup.json에 남기고, 백업에 실패하면 바꾸지 않는다.
+    /// 원래 파일을 읽지 못해 저장을 멈춘 상태면 그 파일을 지키려고 바꾸지 않는다.
+    @discardableResult
+    func replace(with doc: NotesDocument) -> Bool {
+        guard !saveBlocked, backup() else { return false }
+        document = doc
+        dirty = true
+        saveNow()
+        return true
+    }
+
     var backupFileURL: URL { fileURL.deletingLastPathComponent().appending(path: "notes.backup.json") }
 
     private func backup() -> Bool {
