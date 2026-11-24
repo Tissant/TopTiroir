@@ -61,6 +61,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        drawer.model.favorites.saveNow()
         keepAwake.stop(reason: .stopped)   // 화면 켜 두기 어서션을 꼭 푼다
         drawer.model.notes.saveNow()
         decorations.removeAll()

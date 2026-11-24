@@ -27,6 +27,48 @@ final class DrawerModel {
     var notesHeight: CGFloat = Layout.notesDefaultHeight
 
     let notes = NotesStore()
+    let favorites = FavoritesStore()
+    /// 열린 목록 창들(묶음 id, 최대 3칸)
+    var columnStack: [UUID] = [] {
+        didSet { if columnStack != oldValue { onColumnsChanged?() } }
+    }
+    @ObservationIgnored var onColumnsChanged: (() -> Void)?
+    /// 즐겨찾기 수정 모드: 바깥을 눌러도 서랍이 닫히지 않는다(Finder에서 끌어다 놓기). 「저장」·서랍 닫기·탭 이동으로 끝.
+    var favoritesEditing = false {
+        didSet {
+            if !favoritesEditing && oldValue { favorites.saveNow() }
+            if favoritesEditing != oldValue { onColumnsChanged?() }   // 폴더 창 폭 다시 계산
+        }
+    }
+    /// 진단 기록용: 마우스가 올라가 있는 즐겨찾기 줄 종류
+    @ObservationIgnored var hoveredFavoriteKind: String?
+    /// 목록 창 칸마다 내용 높이(입력 줄 포함)
+    @ObservationIgnored private(set) var columnContentHeights: [Int: CGFloat] = [:]
+
+    func reportColumnHeight(_ level: Int, fixed: CGFloat, items: CGFloat) {
+        let total = Layout.listWindowHeight(fixed: fixed, items: items)
+        guard abs((columnContentHeights[level] ?? 0) - total) > 0.5 else { return }
+        columnContentHeights[level] = total
+        onColumnsChanged?()
+    }
+    /// 「앱·파일·폴더 선택…」: 그 목록(path)에 넣을 파일 고르기 창
+    @ObservationIgnored var onChooseFiles: (([UUID]) -> Void)?
+    /// 앱·파일·폴더·웹 주소를 열었을 때(서랍 닫기)
+    @ObservationIgnored var onFavoriteOpened: (() -> Void)?
+
+    /// 즐겨찾기 줄을 누름: 묶음이면 목록 창을 열고 닫고, 나머지는 열고 서랍을 닫는다.
+    func tapFavorite(_ item: FavoriteItem, level: Int) {
+        // 수정 중에는 앱·파일·웹 주소를 열지 않는다(실수 방지). 폴더 창은 열고 닫는다.
+        if favoritesEditing && item.kind != .group { return }
+        favorites.noticeLevel = level
+        // 서랍은 열기가 끝난 뒤에 닫는다(먼저 닫으면 활성 넘겨주기를 방해할 수 있음).
+        let action = favorites.activate(item) { [weak self] in
+            self?.onFavoriteOpened?()   // 바로 닫지 않고 「실행 후 유지」(마우스가 나가면 닫힘)
+        }
+        if action == .toggleGroup {
+            columnStack = FavoriteColumns.toggle(item.id, fromLevel: level, stack: columnStack)
+        }
+    }
     /// 화면 켜 두기(AppDelegate가 KeepAwakeController의 모델로 바꿔 끼운다)
     var keepAwake = KeepAwakeModel()
     @ObservationIgnored var onDrawerOpened: (() -> Void)?
@@ -245,29 +287,53 @@ final class DrawerController {
     let model = DrawerModel()
 
     private let panel = DrawerPanel()
-    private let hosting: NSHostingView<DrawerRootView>
+    private let hosting: FirstClickHostingView<DrawerRootView>
     private var screen: NSScreen?
     private var globalMouseMonitor: Any?
     private var localKeyMonitor: Any?
     private var localMouseMonitor: Any?
     private let shortcutsPanel = DrawerPanel()
-    private let shortcutsHosting: NSHostingView<ShortcutsView>
+    private var columnPanels: [DrawerPanel] = []
+    private let shortcutsHosting: FirstClickHostingView<ShortcutsView>
 
     var isOpen: Bool { panel.isVisible }
 
     init() {
-        hosting = NSHostingView(rootView: DrawerRootView(model: model))
+        hosting = FirstClickHostingView(rootView: DrawerRootView(model: model))
         hosting.sizingOptions = [.intrinsicContentSize]
         panel.contentView = hosting
-        shortcutsHosting = NSHostingView(rootView: ShortcutsView(model: model))
+        shortcutsHosting = FirstClickHostingView(rootView: ShortcutsView(model: model))
         shortcutsHosting.sizingOptions = []
         shortcutsPanel.contentView = shortcutsHosting
+        shortcutsPanel.debugName = "단축키 창"
         shortcutsPanel.level = NSWindow.Level(rawValue: panel.level.rawValue + 1)
         model.onToggleShortcutsWindow = { [weak self] in self?.toggleShortcutsWindow() }
+        for level in 1...FavoriteColumns.maxColumns {
+            let p = DrawerPanel()
+            let h = FirstClickHostingView(rootView: FavoriteColumnView(model: model, level: level))
+            h.sizingOptions = []
+            p.contentView = h
+            p.level = NSWindow.Level(rawValue: panel.level.rawValue + 1)
+            p.hasShadow = true
+            p.debugName = "폴더 창 \(level)"
+            columnPanels.append(p)
+        }
+        model.onColumnsChanged = { [weak self] in self?.layoutColumns() }
+        model.favorites.onChange = { [weak self] in self?.layoutColumns() }
+        // 열어도 바로 닫지 않고, 마우스가 서랍·폴더 창 밖으로 나가면 닫는다(여러 개를 이어서 열 수 있게).
+        model.onFavoriteOpened = { [weak self] in self?.closeWhenMouseLeaves() }
+        model.onChooseFiles = { [weak self] path in self?.chooseFiles(into: path) }
         model.onTabChanged = { [weak self] tab in
-            // 설정 탭에서 연 보조 창은 다른 탭으로 가면 닫는다(돌아와도 다시 열지 않음).
-            guard tab != .settings else { return }
-            self?.closeAuxiliaryWindows()
+            guard let self else { return }
+            // 즐겨찾기에서 벗어나면 폴더 창·수정 모드 끝, 설정에서 벗어나면 단축키·색상 창 닫기(돌아와도 다시 열지 않음).
+            if tab != .favorites {
+                model.columnStack = []
+                model.favoritesEditing = false
+            }
+            if tab != .settings {
+                hideShortcutsWindow()
+                BandColorPanel.shared.close()
+            }
         }
         model.onLayoutChange = { [weak self] in
             DispatchQueue.main.async { self?.relayoutIfOpen() }
@@ -302,6 +368,7 @@ final class DrawerController {
             panel.makeFirstResponder(nil)
             model.openCount += 1
             model.isDrawerOpen = true
+            model.favorites.refreshMissing()
             model.onDrawerOpened?()
         }
         installMonitors()
@@ -316,6 +383,10 @@ final class DrawerController {
         closeAuxiliaryWindows()
         removeMonitors()
         model.isDrawerOpen = false
+        if leaveTimer != nil { DebugOpenLog.write("유지 중 직접 닫힘") }
+        stopLeaveTimer()
+        model.favoritesEditing = false
+        model.favorites.saveNow()
         model.onDrawerClosed?()
         model.notes.saveNow()
     }
@@ -344,6 +415,7 @@ final class DrawerController {
         applyAppearance()
         panel.invalidateShadow()
         if model.shortcutsWindowOpen { placeShortcutsWindow() }
+        if !model.columnStack.isEmpty { layoutColumns() }
     }
 
     // MARK: 단축키 보기 창 (서랍 옆)
@@ -359,10 +431,103 @@ final class DrawerController {
         shortcutsPanel.orderFrontRegardless()
     }
 
-    /// 설정 탭에 딸린 보조 창(단축키 창, 띠 색·서랍 색 색상 창). 나중 보조 창도 여기에 더한다.
+    /// 탭에 딸린 보조 창(단축키 창, 색상 창, 즐겨찾기 목록 창). 탭을 바꾸거나 서랍을 닫으면 닫는다.
     private func closeAuxiliaryWindows() {
         hideShortcutsWindow()
         BandColorPanel.shared.close()
+        model.columnStack = []
+        model.favoritesEditing = false   // 탭을 바꾸거나 서랍을 닫으면 수정 모드도 끝
+    }
+
+    // MARK: 마우스가 나가면 닫기 (즐겨찾기를 연 뒤)
+
+    private var leaveTimer: Timer?
+    private var leaveTracker = Layout.LeaveTracker()
+
+    /// 「실행 후 유지」: 서랍·폴더 창 영역(틈·여유 6pt 포함) 안에 마우스가 있으면 유지, 밖에 0.4초 머물면 닫기.
+    /// 유지하는 동안만 0.1초마다 마우스 위치를 본다.
+    private func closeWhenMouseLeaves() {
+        guard isOpen else { return }
+        if leaveTimer != nil { return }   // 이미 유지 중이면 그대로
+        DebugOpenLog.write("실행 후 유지 시작")
+        leaveTracker = Layout.LeaveTracker()
+        let t = Timer(timeInterval: 0.1, repeats: true) { _ in
+            MainActor.assumeIsolated { [weak self] in self?.checkMouseLeft() }
+        }
+        t.tolerance = 0.03
+        RunLoop.main.add(t, forMode: .common)
+        leaveTimer = t
+    }
+
+    private func checkMouseLeft() {
+        guard isOpen else { stopLeaveTimer(); return }
+        // 수정 모드에서는 자동으로 닫지 않는다(기존 규칙)
+        if model.favoritesEditing { leaveTracker = Layout.LeaveTracker(); return }
+        let frames = [panel.frame] + columnPanels.filter(\.isVisible).map(\.frame)
+            + (shortcutsPanel.isVisible ? [shortcutsPanel.frame] : [])
+        let inside = Layout.isInside(NSEvent.mouseLocation, frames: frames, margin: 6)
+        if leaveTracker.update(inside: inside, now: ProcessInfo.processInfo.systemUptime) {
+            stopLeaveTimer()
+            DebugOpenLog.write("마우스 이탈 0.4초 → 서랍 닫기")
+            close()
+        }
+    }
+
+    private func stopLeaveTimer() {
+        leaveTimer?.invalidate()
+        leaveTimer = nil
+    }
+
+    // MARK: 즐겨찾기 목록 창 (서랍 옆, 최대 3칸)
+
+    private func layoutColumns() {
+        let stack = model.columnStack
+        guard isOpen, let s = screen, !stack.isEmpty else {
+            columnPanels.forEach { $0.orderOut(nil) }
+            return
+        }
+        let d = UserDefaults.standard
+        let t = CGFloat(Layout.clampedScale(d.double(forKey: SettingsKey.textScale)))
+        let sc = CGFloat(Layout.clampedScale(d.double(forKey: SettingsKey.drawerScale)))
+        var previous = panel.frame
+        var goLeft = false
+        for (i, p) in columnPanels.enumerated() {
+            guard i < stack.count, let group = model.favorites.document.find(stack[i]) else {
+                p.orderOut(nil)
+                continue
+            }
+            let count = group.children?.count ?? 0
+            // 보고된 높이(제목 + 고정 줄 + 항목·입력 줄, 최대 450). 아직 없으면 항목 수로 어림.
+            let height = model.columnContentHeights[i + 1] ?? Layout.listWindowHeight(itemCount: count, rowHeight: 24 * t)
+            let width = Layout.listWindowWidth(editing: model.favoritesEditing, scale: sc, text: t)
+            let frame = Layout.listWindowFrame(after: previous, height: height, width: width,
+                                               screenFrame: s.frame, preferLeft: goLeft)
+            if frame.maxX <= previous.minX { goLeft = true }   // 한 번 왼쪽으로 가면 계속 왼쪽으로
+            if p.frame != frame { p.setFrame(frame, display: true) }
+            p.appearance = panel.appearance
+            p.invalidateShadow()
+            p.orderFrontRegardless()
+            previous = frame
+        }
+    }
+
+    /// 앱·파일·폴더 고르기(여러 개). 열려 있는 동안 서랍은 닫히지 않는다(같은 앱의 창이라서).
+    private func chooseFiles(into path: [UUID]) {
+        let open = NSOpenPanel()
+        open.canChooseFiles = true
+        open.canChooseDirectories = true
+        open.allowsMultipleSelection = true
+        open.treatsFilePackagesAsDirectories = false
+        open.prompt = "추가"
+        open.message = "즐겨찾기에 넣을 앱·파일·Finder 폴더를 고르세요. 위치만 기억하고 복사하지 않아요."
+        open.level = NSWindow.Level(rawValue: panel.level.rawValue + 2)
+        NSApp.activate()
+        open.begin { [weak self] response in
+            MainActor.assumeIsolated {
+                guard response == .OK, let self else { return }
+                self.model.favorites.add(urls: open.urls, at: path)
+            }
+        }
     }
 
     private func hideShortcutsWindow() {
@@ -401,7 +566,11 @@ final class DrawerController {
         globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { _ in
             MainActor.assumeIsolated {
                 let mode = UserDefaults.standard.string(forKey: SettingsKey.closeMode)
-                if mode != CloseMode.escOnly.rawValue { DrawerController.shared?.close() }
+                // 즐겨찾기 수정 중에는 닫지 않는다(다른 앱에서 끌어 오려고 누른 것).
+                if FavoritesEditRules.autoCloses(editing: DrawerController.shared?.model.favoritesEditing == true,
+                                                 closeMode: CloseMode(rawValue: mode ?? "") ?? .outsideOrEsc) {
+                    DrawerController.shared?.close()
+                }
             }
         }
         localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
@@ -454,7 +623,15 @@ final class DrawerController {
                     return true
                 }
                 if cancelledEdit { return nil }
-                MainActor.assumeIsolated { DrawerController.shared?.close() }
+                MainActor.assumeIsolated {
+                    // 즐겨찾기 폴더 창이 있으면 가장 안쪽부터, 수정 중이면 서랍은 닫지 않는다.
+                    guard let model = DrawerController.shared?.model else { return }
+                    switch FavoritesEditRules.esc(editing: model.favoritesEditing, openColumns: model.columnStack.count) {
+                    case .closeInnermostColumn: model.columnStack.removeLast()
+                    case .nothing: break
+                    case .closeDrawer: DrawerController.shared?.close()
+                    }
+                }
                 return nil
             }
             return event
@@ -517,6 +694,30 @@ final class DrawerController {
     static weak var shared: DrawerController?
 }
 
+/// 앞에 있지 않은 서랍·폴더 창에서도 첫 클릭이 바로 단추·줄에 닿게 한다(창을 앞으로 가져오는 데 쓰이지 않게).
+/// 또 마우스가 창 위에 오면 그 창이 바로 키 입력·마우스 올림을 받게(키 창으로) 한다.
+/// 서랍·폴더 창은 앱을 활성으로 만들지 않는 창이라, 키 창이 아니면 마우스 올림 표시가 안 되고
+/// 첫 클릭이 창을 깨우는 데 쓰여 줄이 눌리지 않을 수 있었다.
+final class FirstClickHostingView<Content: View>: NSHostingView<Content> {
+    private var enterArea: NSTrackingArea?
+
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let enterArea { removeTrackingArea(enterArea) }
+        let area = NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+                                  owner: self, userInfo: nil)
+        addTrackingArea(area)
+        enterArea = area
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        super.mouseEntered(with: event)
+        if let w = window, w.isVisible, !w.isKeyWindow, w.canBecomeKey { w.makeKey() }
+    }
+}
+
 /// 유리 서랍 창: 테두리 없음, 다른 앱을 비활성으로 만들지 않음, 키 입력(esc) 받기 가능
 final class DrawerPanel: NSPanel {
     init() {
@@ -537,4 +738,20 @@ final class DrawerPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
     override func constrainFrameRect(_ frameRect: NSRect, to screen: NSScreen?) -> NSRect { frameRect }
+
+    /// 진단 기록용 창 이름(서랍 / 폴더 창 1~3 / 단축키 창)
+    var debugName = "서랍"
+
+    /// 진단 기록(켜져 있을 때만): 마우스 누름·뗌이 이 창에 도착하는 즉시 한 줄
+    override func sendEvent(_ event: NSEvent) {
+        if event.type == .leftMouseDown || event.type == .leftMouseUp {
+            MainActor.assumeIsolated {
+                guard DebugOpenLog.enabled else { return }
+                let kind = DrawerController.shared?.model.hoveredFavoriteKind ?? "기타"
+                let editing = DrawerController.shared?.model.favoritesEditing == true
+                DebugOpenLog.write("마우스 \(event.type == .leftMouseDown ? "누름" : "뗌") 창=\(debugName) key=\(isKeyWindow) 앱활성=\(NSApp.isActive) 줄=\(kind) 수정=\(editing)")
+            }
+        }
+        super.sendEvent(event)
+    }
 }

@@ -26,5 +26,18 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>TopTiroir 즐겨찾기 줄</string>
+			<key>UTTypeIdentifier</key>
+			<string>local.toptiroir.favorite</string>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -76,7 +76,7 @@ struct DrawerRootView: View {
                     NotesTabView(model: model, height: contentHeight, scale: s, text: t, palette: palette)
                 } else {
                     ScrollView {
-                        tabContent(palette)
+                        tabContent(palette, height: contentHeight)
                     }
                     .scrollBounceBehavior(.basedOnSize)
                     .frame(height: contentHeight + 6 * s)
@@ -204,10 +204,10 @@ struct DrawerRootView: View {
         return d.todos.isEmpty ? "" : "미완료 \(d.remainingCount) / 할 일 \(d.todos.count)"
     }
 
-    @ViewBuilder private func tabContent(_ palette: DrawerPalette) -> some View {
+    @ViewBuilder private func tabContent(_ palette: DrawerPalette, height: CGFloat) -> some View {
         switch model.tab {
         case .notes: EmptyView()
-        case .favorites: ComingSoonView(symbol: "star", text: "즐겨찾기는 v0.4에서 만나요", scale: s, textScale: t, palette: palette)
+        case .favorites: FavoritesTabView(model: model, scale: s, text: t, palette: palette, minHeight: height)
         case .settings: SettingsTabView(model: model, scale: s, text: t, palette: palette)
         }
     }

@@ -13,8 +13,8 @@ settings:
     DEVELOPMENT_TEAM: ""
     ENABLE_HARDENED_RUNTIME: YES
     DEAD_CODE_STRIPPING: YES
-    MARKETING_VERSION: 0.3.0
-    CURRENT_PROJECT_VERSION: 6
+    MARKETING_VERSION: 0.4.0
+    CURRENT_PROJECT_VERSION: 7
 targets:
   TopTiroir:
     type: application
@@ -30,6 +30,10 @@ targets:
         LSUIElement: true
         LSApplicationCategoryType: public.app-category.utilities
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: local.toptiroir.favorite
+            UTTypeDescription: TopTiroir 즐겨찾기 줄
+            UTTypeConformsTo: [public.data]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: local.toptiroir.app
