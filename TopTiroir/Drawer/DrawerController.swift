@@ -97,19 +97,19 @@ final class DrawerModel {
         var done: [String] = [], failed: [String] = []
         if takeNotes, let n = file.notes {
             todoEdit = nil
-            if notes.replace(with: n) { done.append("메모·할 일") } else { failed.append("메모·할 일") }
+            if notes.replace(with: n) { done.append(String(localized: "메모·할 일")) } else { failed.append(String(localized: "메모·할 일")) }
         }
         if takeFavorites, let f = file.favorites {
             favoritesEditing = false
             columnStack = []
-            if favorites.replace(with: f) { done.append("즐겨찾기") } else { failed.append("즐겨찾기") }
+            if favorites.replace(with: f) { done.append(String(localized: "즐겨찾기")) } else { failed.append(String(localized: "즐겨찾기")) }
         }
         if !failed.isEmpty {
-            backupMessage = "\(failed.joined(separator: "·"))는 지금 내용을 백업하지 못해 바꾸지 않았어요."
+            backupMessage = String(localized: "\(failed.joined(separator: "·"))는 지금 내용을 백업하지 못해 바꾸지 않았어요.")
         } else if done.isEmpty {
-            backupMessage = "아무것도 가져오지 않았어요."
+            backupMessage = String(localized: "아무것도 가져오지 않았어요.")
         } else {
-            backupMessage = "\(done.joined(separator: "·"))를 가져왔어요. 바꾸기 전 내용은 백업 파일로 남겼어요."
+            backupMessage = String(localized: "\(done.joined(separator: "·"))를 가져왔어요. 바꾸기 전 내용은 백업 파일로 남겼어요.")
         }
     }
 
@@ -252,10 +252,10 @@ final class DrawerModel {
         switch shortcuts.check(s, for: action) {
         case .ok: finishRecording(s)
         case .cancel: finishRecording(nil)
-        case .needsModifier: say(action, "글자·숫자 키는 ⌘ 또는 ⌃와 함께 눌러 주세요. (F1~F20은 혼자 써도 돼요)")
-        case .needsCommand: say(action, "종료는 ⌘와 함께 눌러 주세요.")
-        case .unsupported: say(action, "이 키는 쓸 수 없어요. 다른 키를 눌러 주세요.")
-        case .conflict(let owner): say(action, "\(s.normalized.displayName)은(는) 「\(owner)」에서 이미 쓰는 키예요. 다른 키를 눌러 주세요.")
+        case .needsModifier: say(action, String(localized: "글자·숫자 키는 ⌘ 또는 ⌃와 함께 눌러 주세요. (F1~F20은 혼자 써도 돼요)"))
+        case .needsCommand: say(action, String(localized: "종료는 ⌘와 함께 눌러 주세요."))
+        case .unsupported: say(action, String(localized: "이 키는 쓸 수 없어요. 다른 키를 눌러 주세요."))
+        case .conflict(let owner): say(action, String(localized: "\(s.normalized.displayName)은(는) 「\(owner)」에서 이미 쓰는 키예요. 다른 키를 눌러 주세요."))
         }
     }
 
@@ -263,7 +263,7 @@ final class DrawerModel {
         if recordingAction != nil { finishRecording(nil) }
         let d = action.defaultShortcut
         if case .conflict(let owner) = shortcuts.check(d, for: action) {
-            say(action, "기본값 \(d.displayName)을(를) 「\(owner)」에서 쓰고 있어요. 그쪽을 먼저 바꿔 주세요.")
+            say(action, String(localized: "기본값 \(d.displayName)을(를) 「\(owner)」에서 쓰고 있어요. 그쪽을 먼저 바꿔 주세요."))
             return
         }
         assign(d, to: action)
@@ -290,7 +290,7 @@ final class DrawerModel {
             if onApplyHotKey?(new) == true {
                 if shortcutMessage?.action == action { shortcutMessage = nil }
             } else {
-                say(action, "\(new.displayName)은(는) 다른 앱에서 쓰고 있어 바꾸지 못했어요. \(old.displayName)을(를) 그대로 써요.")
+                say(action, String(localized: "\(new.displayName)은(는) 다른 앱에서 쓰고 있어 바꾸지 못했어요. \(old.displayName)을(를) 그대로 써요."))
             }
             return
         }
@@ -592,8 +592,8 @@ final class DrawerController {
         open.canChooseDirectories = true
         open.allowsMultipleSelection = true
         open.treatsFilePackagesAsDirectories = false
-        open.prompt = "추가"
-        open.message = "즐겨찾기에 넣을 앱·파일·Finder 폴더를 고르세요. 위치만 기억하고 복사하지 않아요."
+        open.prompt = String(localized: "추가")
+        open.message = String(localized: "즐겨찾기에 넣을 앱·파일·Finder 폴더를 고르세요. 위치만 기억하고 복사하지 않아요.")
         present(open) { [weak self] response in
             guard response == .OK, let self else { return }
             self.model.favorites.add(urls: open.urls, at: path)
@@ -606,16 +606,16 @@ final class DrawerController {
         save.nameFieldStringValue = BackupFile.suggestedFileName(date: Date())
         save.allowedContentTypes = [.json]
         save.canCreateDirectories = true
-        save.prompt = "내보내기"
-        save.message = "메모·할 일·즐겨찾기를 파일 하나로 저장해요. 메모 글이 그대로 들어 있으니 안전한 곳에 두세요."
+        save.prompt = String(localized: "내보내기")
+        save.message = String(localized: "메모·할 일·즐겨찾기를 파일 하나로 저장해요. 메모 글이 그대로 들어 있으니 안전한 곳에 두세요.")
         present(save) { [weak self] response in
             guard response == .OK, let self, let url = save.url else { return }
             do {
                 try self.model.makeBackup().encoded().write(to: url, options: [.atomic])
                 try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
-                self.model.backupMessage = "\(url.lastPathComponent)로 내보냈어요."
+                self.model.backupMessage = String(localized: "\(url.lastPathComponent)로 내보냈어요.")
             } catch {
-                self.model.backupMessage = "내보내지 못했어요: \(error.localizedDescription)"
+                self.model.backupMessage = String(localized: "내보내지 못했어요: \(error.localizedDescription)")
             }
         }
     }
@@ -627,14 +627,14 @@ final class DrawerController {
         open.canChooseDirectories = false
         open.allowsMultipleSelection = false
         open.allowedContentTypes = [.json]
-        open.prompt = "고르기"
-        open.message = "가져올 TopTiroir 백업 파일을 고르세요. 바꾸기 전에 한 번 더 확인해요."
+        open.prompt = String(localized: "고르기")
+        open.message = String(localized: "가져올 TopTiroir 백업 파일을 고르세요. 바꾸기 전에 한 번 더 확인해요.")
         present(open) { [weak self] response in
             guard response == .OK, let self, let url = open.url else { return }
             // 너무 큰 파일은 읽지 않는다(실수로 다른 파일을 고른 경우).
             let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
             guard size <= 20_000_000, let data = try? Data(contentsOf: url) else {
-                self.model.backupMessage = "파일을 읽지 못했어요."
+                self.model.backupMessage = String(localized: "파일을 읽지 못했어요.")
                 return
             }
             switch BackupFile.decode(data) {

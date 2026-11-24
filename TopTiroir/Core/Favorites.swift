@@ -291,10 +291,10 @@ enum FavoriteURL {
 
     static func message(_ p: Problem) -> String {
         switch p {
-        case .empty: "주소를 적어 주세요."
-        case .spaces: "주소에 띄어쓰기가 있어요."
-        case .scheme: "http나 https로 시작하는 웹 주소만 넣을 수 있어요."
-        case .invalid: "웹 주소 형식이 아니에요. 예: https://example.com"
+        case .empty: String(localized: "주소를 적어 주세요.")
+        case .spaces: String(localized: "주소에 띄어쓰기가 있어요.")
+        case .scheme: String(localized: "http나 https로 시작하는 웹 주소만 넣을 수 있어요.")
+        case .invalid: String(localized: "웹 주소 형식이 아니에요. 예: https://example.com")
         }
     }
 
@@ -486,9 +486,9 @@ enum FavoriteDrop {
 
 /// 즐겨찾기 줄 오른쪽 클릭 메뉴(순서는 끌어서 바꾸므로 위로/아래로 없음)
 enum FavoriteMenu {
-    static let rename = "이름 바꾸기"
-    static let remove = "즐겨찾기에서 삭제"
-    static let removeSeparator = "삭제"
+    static let rename = String(localized: "이름 바꾸기")
+    static let remove = String(localized: "즐겨찾기에서 삭제")
+    static let removeSeparator = String(localized: "삭제")
     static func items(for kind: FavoriteKind) -> [String] {
         kind == .separator ? [removeSeparator] : [rename, remove]
     }
@@ -500,12 +500,12 @@ enum FavoriteMenu {
 enum FavoriteKindName {
     static func of(_ kind: FavoriteKind) -> String {
         switch kind {
-        case .group: "폴더"
-        case .app: "앱"
-        case .file: "파일"
+        case .group: String(localized: "폴더")
+        case .app: String(localized: "앱")
+        case .file: String(localized: "파일")
         case .url: "URL"
-        case .folder: "Finder 폴더"
-        case .separator: "구분선"
+        case .folder: String(localized: "Finder 폴더")
+        case .separator: String(localized: "구분선")
         }
     }
 }

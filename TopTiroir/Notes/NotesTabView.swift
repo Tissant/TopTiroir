@@ -307,7 +307,7 @@ struct TodoRow: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2, perform: onBeginEdit)
-                    .help("\(item.text)\n(더블클릭하면 고치기)")
+                    .help(String(localized: "\(item.text)\n(더블클릭하면 고치기)"))
             }
             Button(action: onDelete) {
                 Image(systemName: "xmark")

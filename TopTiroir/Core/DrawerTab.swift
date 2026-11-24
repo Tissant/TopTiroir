@@ -4,9 +4,9 @@ enum DrawerTab: String, CaseIterable, Identifiable, Sendable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .notes: "메모/할 일"
-        case .favorites: "즐겨찾기"
-        case .settings: "설정"
+        case .notes: String(localized: "메모/할 일")
+        case .favorites: String(localized: "즐겨찾기")
+        case .settings: String(localized: "설정")
         }
     }
 }
@@ -17,9 +17,9 @@ enum OpenTabMode: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
-        case .last: "마지막에 본 탭"
-        case .notes: "메모/할 일"
-        case .favorites: "즐겨찾기"
+        case .last: String(localized: "마지막에 본 탭")
+        case .notes: String(localized: "메모/할 일")
+        case .favorites: String(localized: "즐겨찾기")
         }
     }
 

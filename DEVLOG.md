@@ -1,5 +1,22 @@
 # TopTiroir 개발 기록
 
+## v0.6.0 (빌드 9) — 2026-11-24 · 사용자 테스트 대기
+v0.5.0 커밋 `ca7988b`. 주제: 영어 화면(String Catalog).
+
+### 만든 것
+1. **언어 규칙**: 맥 시스템 언어를 따름. **한국어면 한국어, 그 밖의 모든 언어는 영어**. (`CFBundleDevelopmentRegion=en`, `CFBundleLocalizations=[en, ko]`. 일본어·프랑스어 등 지원 언어가 없으면 영어로 떨어짐 — 언어 목록 조회로 fr→en, ja→en, ko→ko 확인.)
+2. **번역 목록** `TopTiroir/Resources/Localizable.xcstrings`: 원문(키)은 코드의 한글 문구 그대로, 영어 241개. 코드는 거의 안 건드림.
+3. **글자만 나오는 곳**(탭 이름, 오류·알림 문구, 단축키 이름, 시간 표시 등 `String`으로 쓰는 곳)은 `String(localized:)`로 감쌈(약 100곳). SwiftUI `Text("…")`·`Button("…")`·`.help("…")`는 그대로 자동 번역.
+4. 빌드 설정: `LOCALIZATION_PREFERS_STRING_CATALOGS`, `SWIFT_EMIT_LOC_STRINGS`.
+
+### 번역하지 않은 것
+- 개발용 로그·디버그 문구, 백업 파일 이름(`TopTiroir-백업-날짜.json`), 절전 방지 사유 문구, 즐겨찾기 형식 설명(Info.plist).
+- 숫자 뒤 「개」는 영어에서 `item(s)` 꼴로 표기(복수형 변형은 안 씀).
+
+### 확인할 것
+- 한국어 맥에서 기존과 똑같이 한글로 보이는지, 영어로 바꿔서(아래 방법) 모든 화면이 영어인지, 글이 길어져 칸을 넘치는 곳이 없는지.
+- 영어 확인: 설치 앱을 끈 뒤 `open -n build/.../TopTiroir.app --args -AppleLanguages "(en)"`.
+
 ## v0.5.0 (빌드 8) — 2026-11-24 · 사용자 테스트 대기
 v0.4.0 커밋 완료: `4b51a9a`, 태그 `v0.4.0`. 주제: 정식 설치와 안정화.
 

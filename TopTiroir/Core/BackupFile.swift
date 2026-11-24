@@ -34,9 +34,9 @@ struct BackupFile: Codable, Equatable, Sendable {
 
         var message: String {
             switch self {
-            case .notBackup: "TopTiroir 백업 파일이 아니에요."
-            case .newerVersion: "더 새 버전의 TopTiroir가 만든 파일이라 읽을 수 없어요. 앱을 업데이트해 주세요."
-            case .empty: "백업 파일에 메모·즐겨찾기가 없어요."
+            case .notBackup: String(localized: "TopTiroir 백업 파일이 아니에요.")
+            case .newerVersion: String(localized: "더 새 버전의 TopTiroir가 만든 파일이라 읽을 수 없어요. 앱을 업데이트해 주세요.")
+            case .empty: String(localized: "백업 파일에 메모·즐겨찾기가 없어요.")
             }
         }
     }
@@ -85,9 +85,9 @@ struct BackupFile: Codable, Equatable, Sendable {
     /// 「메모 120자 · 할 일 3개」 / 「즐겨찾기 12개」
     static func summary(notes: NotesDocument?, favorites: FavoritesDocument?) -> String {
         var parts: [String] = []
-        if let n = notes { parts.append("메모 \(n.memo.count)자 · 할 일 \(n.todos.count)개") }
-        if let f = favorites { parts.append("즐겨찾기 \(favoriteCount(f))개") }
-        return parts.isEmpty ? "내용 없음" : parts.joined(separator: " · ")
+        if let n = notes { parts.append(String(localized: "메모 \(n.memo.count)자 · 할 일 \(n.todos.count)개")) }
+        if let f = favorites { parts.append(String(localized: "즐겨찾기 \(favoriteCount(f))개")) }
+        return parts.isEmpty ? String(localized: "내용 없음") : parts.joined(separator: " · ")
     }
 }
 

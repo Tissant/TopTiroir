@@ -201,7 +201,7 @@ struct DrawerRootView: View {
 
     private var todoCountText: String {
         let d = model.notes.document
-        return d.todos.isEmpty ? "" : "미완료 \(d.remainingCount) / 할 일 \(d.todos.count)"
+        return d.todos.isEmpty ? "" : String(localized: "미완료 \(d.remainingCount) / 할 일 \(d.todos.count)")
     }
 
     @ViewBuilder private func tabContent(_ palette: DrawerPalette, height: CGFloat) -> some View {
@@ -332,7 +332,7 @@ struct ComingSoonView: View {
             Image(systemName: symbol)
                 .font(.system(size: 22 * scale))
                 .foregroundStyle(Brand.orange)
-            Text(text)
+            Text(LocalizedStringKey(text))
                 .font(.system(size: 12 * textScale))
                 .foregroundStyle(palette.tabText)
         }

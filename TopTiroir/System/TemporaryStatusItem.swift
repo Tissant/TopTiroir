@@ -18,7 +18,7 @@ final class TemporaryStatusItem: NSObject {
                 button.image = image
                 button.target = self
                 button.action = #selector(clicked)
-                button.toolTip = "TopTiroir 서랍 열기"
+                button.toolTip = String(localized: "TopTiroir 서랍 열기")
             }
             item = newItem
         }

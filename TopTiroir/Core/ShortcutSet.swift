@@ -7,11 +7,11 @@ enum ShortcutAction: String, CaseIterable, Identifiable, Sendable {
 
     var title: String {
         switch self {
-        case .openDrawer: "서랍 열기·닫기"
-        case .tabNotes: "메모/할 일 탭"
-        case .tabFavorites: "즐겨찾기 탭"
-        case .tabSettings: "설정 탭"
-        case .quit: "TopTiroir 종료"
+        case .openDrawer: String(localized: "서랍 열기·닫기")
+        case .tabNotes: String(localized: "메모/할 일 탭")
+        case .tabFavorites: String(localized: "즐겨찾기 탭")
+        case .tabSettings: String(localized: "설정 탭")
+        case .quit: String(localized: "TopTiroir 종료")
         }
     }
 
@@ -42,22 +42,22 @@ struct FixedShortcut: Sendable {
     let shortcut: Shortcut?   // 키 하나로 나타낼 수 없는 것(더블클릭 등)은 nil
 
     static let drawer: [FixedShortcut] = [
-        FixedShortcut(title: "서랍 닫기 · 고치기 취소", keys: "esc", shortcut: Shortcut(keyCode: 53, modifiers: 0)),
+        FixedShortcut(title: String(localized: "서랍 닫기 · 고치기 취소"), keys: "esc", shortcut: Shortcut(keyCode: 53, modifiers: 0)),
     ]
 
     static let editing: [FixedShortcut] = {
         let cmd = Shortcut.Modifier.command, shift = Shortcut.Modifier.shift
         return [
-            FixedShortcut(title: "되돌리기", keys: "⌘Z", shortcut: Shortcut(keyCode: 6, modifiers: cmd)),
-            FixedShortcut(title: "다시 실행", keys: "⇧⌘Z", shortcut: Shortcut(keyCode: 6, modifiers: cmd | shift)),
-            FixedShortcut(title: "잘라내기", keys: "⌘X", shortcut: Shortcut(keyCode: 7, modifiers: cmd)),
-            FixedShortcut(title: "복사", keys: "⌘C", shortcut: Shortcut(keyCode: 8, modifiers: cmd)),
-            FixedShortcut(title: "붙여넣기", keys: "⌘V", shortcut: Shortcut(keyCode: 9, modifiers: cmd)),
-            FixedShortcut(title: "전체 선택", keys: "⌘A", shortcut: Shortcut(keyCode: 0, modifiers: cmd)),
-            FixedShortcut(title: "들여쓰기(메모)", keys: "Tab", shortcut: Shortcut(keyCode: 48, modifiers: 0)),
-            FixedShortcut(title: "내어쓰기(메모)", keys: "⇧Tab", shortcut: Shortcut(keyCode: 48, modifiers: shift)),
-            FixedShortcut(title: "할 일 추가 · 고치기 완료", keys: "↩", shortcut: Shortcut(keyCode: 36, modifiers: 0)),
-            FixedShortcut(title: "할 일 고치기 시작", keys: "더블클릭", shortcut: nil),
+            FixedShortcut(title: String(localized: "되돌리기"), keys: "⌘Z", shortcut: Shortcut(keyCode: 6, modifiers: cmd)),
+            FixedShortcut(title: String(localized: "다시 실행"), keys: "⇧⌘Z", shortcut: Shortcut(keyCode: 6, modifiers: cmd | shift)),
+            FixedShortcut(title: String(localized: "잘라내기"), keys: "⌘X", shortcut: Shortcut(keyCode: 7, modifiers: cmd)),
+            FixedShortcut(title: String(localized: "복사"), keys: "⌘C", shortcut: Shortcut(keyCode: 8, modifiers: cmd)),
+            FixedShortcut(title: String(localized: "붙여넣기"), keys: "⌘V", shortcut: Shortcut(keyCode: 9, modifiers: cmd)),
+            FixedShortcut(title: String(localized: "전체 선택"), keys: "⌘A", shortcut: Shortcut(keyCode: 0, modifiers: cmd)),
+            FixedShortcut(title: String(localized: "들여쓰기(메모)"), keys: "Tab", shortcut: Shortcut(keyCode: 48, modifiers: 0)),
+            FixedShortcut(title: String(localized: "내어쓰기(메모)"), keys: "⇧Tab", shortcut: Shortcut(keyCode: 48, modifiers: shift)),
+            FixedShortcut(title: String(localized: "할 일 추가 · 고치기 완료"), keys: "↩", shortcut: Shortcut(keyCode: 36, modifiers: 0)),
+            FixedShortcut(title: String(localized: "할 일 고치기 시작"), keys: String(localized: "더블클릭"), shortcut: nil),
         ]
     }()
 

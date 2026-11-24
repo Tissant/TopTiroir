@@ -6,9 +6,9 @@ enum KeepAwakeMode: String, CaseIterable, Sendable {
     case continuous, duration, until
     var title: String {
         switch self {
-        case .continuous: "계속"
-        case .duration: "일정 시간"
-        case .until: "시각까지"
+        case .continuous: String(localized: "계속")
+        case .duration: String(localized: "일정 시간")
+        case .until: String(localized: "시각까지")
         }
     }
 }
@@ -29,10 +29,10 @@ enum KeepAwakeStartError: Error, Equatable, Sendable {
 
     var message: String {
         switch self {
-        case .needsPower: "「계속」은 충전 중에만 쓸 수 있어요."
-        case .alreadyPassed: "이미 지난 시각이에요. 5시간 안의 시각을 골라 주세요."
-        case .tooFar: "지금부터 5시간 안의 시각만 고를 수 있어요."
-        case .unavailable: "화면 켜 두기를 시작하지 못했어요."
+        case .needsPower: String(localized: "「계속」은 충전 중에만 쓸 수 있어요.")
+        case .alreadyPassed: String(localized: "이미 지난 시각이에요. 5시간 안의 시각을 골라 주세요.")
+        case .tooFar: String(localized: "지금부터 5시간 안의 시각만 고를 수 있어요.")
+        case .unavailable: String(localized: "화면 켜 두기를 시작하지 못했어요.")
         }
     }
 }
@@ -43,11 +43,11 @@ enum KeepAwakeStopReason: Equatable, Sendable {
 
     var message: String? {
         switch self {
-        case .timeUp: "정한 시간이 끝나 화면 켜 두기를 껐어요."
-        case .input: "키보드·마우스 사용으로 화면 켜 두기를 껐어요."
-        case .onBattery: "배터리로 바뀌어 화면 켜 두기를 껐어요."
-        case .lowBattery(let p): "배터리가 \(p)% 이하라 화면 켜 두기를 껐어요."
-        case .continuousUnplugged: "충전기가 빠져 「계속」 화면 켜 두기를 껐어요."
+        case .timeUp: String(localized: "정한 시간이 끝나 화면 켜 두기를 껐어요.")
+        case .input: String(localized: "키보드·마우스 사용으로 화면 켜 두기를 껐어요.")
+        case .onBattery: String(localized: "배터리로 바뀌어 화면 켜 두기를 껐어요.")
+        case .lowBattery(let p): String(localized: "배터리가 \(p)% 이하라 화면 켜 두기를 껐어요.")
+        case .continuousUnplugged: String(localized: "충전기가 빠져 「계속」 화면 켜 두기를 껐어요.")
         case .stopped: nil   // 직접 중지: 안내 없음
         }
     }
@@ -94,9 +94,9 @@ enum KeepAwake {
     static func durationTitle(_ minutes: Int) -> String {
         let h = minutes / 60, m = minutes % 60
         switch (h, m) {
-        case (0, _): return "\(m)분"
-        case (_, 0): return "\(h)시간"
-        default: return "\(h)시간 \(m)분"
+        case (0, _): return String(localized: "\(m)분")
+        case (_, 0): return String(localized: "\(h)시간")
+        default: return String(localized: "\(h)시간 \(m)분")
         }
     }
 
@@ -128,12 +128,12 @@ enum KeepAwake {
 
     /// 「1:24 남음」 「24분 남음」 「1분 미만 남음」, 계속이면 「계속」
     static func remainingText(end: Date?, now: Date) -> String {
-        guard let end else { return "계속" }
+        guard let end else { return String(localized: "계속") }
         let seconds = max(end.timeIntervalSince(now), 0)
         let minutes = Int((seconds / 60).rounded(.up))
-        if seconds < 60 { return "1분 미만 남음" }
-        if minutes >= 60 { return String(format: "%d:%02d 남음", minutes / 60, minutes % 60) }
-        return "\(minutes)분 남음"
+        if seconds < 60 { return String(localized: "1분 미만 남음") }
+        if minutes >= 60 { return String(format: String(localized: "%d:%02d 남음"), minutes / 60, minutes % 60) }
+        return String(localized: "\(minutes)분 남음")
     }
 
     /// 막대 길이 비율(1 = 꽉 참). 계속이면 1.
@@ -219,13 +219,13 @@ enum IndicatorStyle: String, CaseIterable, Sendable {
     case bar, breathe, softHalo, lightStream, aurora, dotClock, notchHalo
     var title: String {
         switch self {
-        case .bar: "남은 시간 막대"
-        case .breathe: "숨 쉬는 네온 테두리"
-        case .softHalo: "소프트 후광"
-        case .lightStream: "빛줄기 흐름"
-        case .aurora: "오로라 테두리"
-        case .dotClock: "점 시계"
-        case .notchHalo: "노치 후광"
+        case .bar: String(localized: "남은 시간 막대")
+        case .breathe: String(localized: "숨 쉬는 네온 테두리")
+        case .softHalo: String(localized: "소프트 후광")
+        case .lightStream: String(localized: "빛줄기 흐름")
+        case .aurora: String(localized: "오로라 테두리")
+        case .dotClock: String(localized: "점 시계")
+        case .notchHalo: String(localized: "노치 후광")
         }
     }
     /// 선택 상자에서 모양을 구분하는 기호

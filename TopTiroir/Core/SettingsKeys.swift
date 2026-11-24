@@ -70,19 +70,19 @@ enum SettingsDefault {
 /// 노치에서 서랍 열기 방식
 enum NotchOpenMode: String, CaseIterable, Sendable {
     case click, hover
-    var title: String { self == .click ? "클릭하면" : "마우스를 올리면" }
+    var title: String { self == .click ? String(localized: "클릭하면") : String(localized: "마우스를 올리면") }
 }
 
 /// 서랍 닫기 방식
 enum CloseMode: String, CaseIterable, Sendable {
     case outsideOrEsc, escOnly
-    var title: String { self == .outsideOrEsc ? "바깥 클릭·esc" : "esc만" }
+    var title: String { self == .outsideOrEsc ? String(localized: "바깥 클릭·esc") : String(localized: "esc만") }
 }
 
 /// 서랍·창 색상: 기본(유리) 또는 직접 고른 색
 enum DrawerColorMode: String, CaseIterable, Sendable {
     case standard, custom
-    var title: String { self == .standard ? "기본" : "색상" }
+    var title: String { self == .standard ? String(localized: "기본") : String(localized: "색상") }
 }
 
 /// 「기본」일 때 서랍만의 밝기 모양(맥 전체 화면 모드는 바꾸지 않음)
@@ -90,9 +90,9 @@ enum DrawerAppearance: String, CaseIterable, Sendable {
     case light, dark, system
     var title: String {
         switch self {
-        case .light: "라이트"
-        case .dark: "다크"
-        case .system: "시스템"
+        case .light: String(localized: "라이트")
+        case .dark: String(localized: "다크")
+        case .system: String(localized: "시스템")
         }
     }
 }

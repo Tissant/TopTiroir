@@ -60,12 +60,12 @@ struct SettingsTabView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            section("화면 켜 두기") { keepAwakeRows }
+            section(String(localized: "화면 켜 두기")) { keepAwakeRows }
             Divider()
-            section("화면") {
-                row("노치 숨기기") { toggle($hideNotch) }
-                row("화면 모서리 둥글게") { toggle($roundCorners) }
-                row("띠 색") {
+            section(String(localized: "화면")) {
+                row(String(localized: "노치 숨기기")) { toggle($hideNotch) }
+                row(String(localized: "화면 모서리 둥글게")) { toggle($roundCorners) }
+                row(String(localized: "띠 색")) {
                     Button { model.onShowColorPanel?(SettingsKey.bandColor, SettingsDefault.bandColor) } label: {
                         RoundedRectangle(cornerRadius: 4 * scale)
                             .fill(Color(nsColor: NSColor(ttHex: bandColorHex)))
@@ -78,25 +78,25 @@ struct SettingsTabView: View {
                         Button("기본") { bandColorHex = SettingsDefault.bandColor }.font(controlFont)
                     }
                 }
-                row("서랍·창 색상") { drawerColorControl }
-                row("글자 크기") {
+                row(String(localized: "서랍·창 색상")) { drawerColorControl }
+                row(String(localized: "글자 크기")) {
                     PercentSlider(stored: $textScale, range: Layout.scaleRange, step: 0.1,
                                   clamp: Layout.clampedScale, label: Layout.percentText,
                                   scale: scale, font: font)
                 }
-                row("서랍·창 크기") {
+                row(String(localized: "서랍·창 크기")) {
                     PercentSlider(stored: $drawerScale, range: Layout.scaleRange, step: 0.1,
                                   clamp: Layout.clampedScale, label: Layout.percentText,
                                   scale: scale, font: font)
                 }
-                row("글자 투명도") {
+                row(String(localized: "글자 투명도")) {
                     PercentSlider(stored: $textOpacity, range: Layout.textOpacityRange, step: 0.05,
                                   clamp: { Layout.clampedOpacity($0, range: Layout.textOpacityRange) },
                                   label: { Layout.opacityPercentText($0, range: Layout.textOpacityRange) },
                                   scale: scale, font: font,
                                   onPreview: { model.textOpacityPreview = $0 })
                 }
-                row("서랍·창 투명도") {
+                row(String(localized: "서랍·창 투명도")) {
                     PercentSlider(stored: $drawerOpacity, range: Layout.windowOpacityRange, step: 0.05,
                                   clamp: { Layout.clampedOpacity($0, range: Layout.windowOpacityRange) },
                                   label: { Layout.opacityPercentText($0, range: Layout.windowOpacityRange) },
@@ -105,8 +105,8 @@ struct SettingsTabView: View {
                 }
             }
             Divider()
-            section("동작") {
-                row("들여쓰기 너비") { indentControl }
+            section(String(localized: "동작")) {
+                row(String(localized: "들여쓰기 너비")) { indentControl }
                 row("노치에서 열기") {
                     Picker("노치에서 열기", selection: $notchOpenMode) {
                         ForEach(NotchOpenMode.allCases, id: \.rawValue) { Text($0.title).tag($0.rawValue) }
@@ -136,10 +136,10 @@ struct SettingsTabView: View {
                 }
             }
             Divider()
-            section("관리") {
+            section(String(localized: "관리")) {
                 clearRow(.memo)
                 if let clearMessage { note(clearMessage) }
-                row("메모·즐겨찾기 내보내기") {
+                row(String(localized: "메모·즐겨찾기 내보내기")) {
                     Button("내보내기…") {
                         model.backupMessage = nil
                         model.onExportBackup?()
@@ -150,7 +150,7 @@ struct SettingsTabView: View {
                 if let file = model.pendingImport {
                     importConfirm(file)
                 } else {
-                    row("메모·즐겨찾기 가져오기") {
+                    row(String(localized: "메모·즐겨찾기 가져오기")) {
                         Button("가져오기…") {
                             model.backupMessage = nil
                             model.onImportBackup?()
@@ -160,7 +160,7 @@ struct SettingsTabView: View {
                     }
                 }
                 if let message = model.backupMessage { note(message) }
-                row("메뉴막대 아이콘 잠깐 보이기") {
+                row(String(localized: "메뉴막대 아이콘 잠깐 보이기")) {
                     Button(statusItemShown ? "60초 동안 보임" : "보이기") {
                         model.onShowStatusItem?()
                         statusItemShown = true
@@ -178,10 +178,10 @@ struct SettingsTabView: View {
                         .foregroundStyle(.secondary)
                         .padding(.bottom, 2 * scale)
                 }
-                row("TopTiroir 정보") {
+                row(String(localized: "TopTiroir 정보")) {
                     Text("버전 \(Self.version)").font(font).foregroundStyle(.secondary)
                 }
-                row("TopTiroir 종료") {
+                row(String(localized: "TopTiroir 종료")) {
                     HStack(spacing: 6 * scale) {
                         Text("⌘Q").font(font).foregroundStyle(.secondary)
                         // ⌘Q는 서랍이 열려 있으면 어느 탭에서든 동작(DrawerController 키 감시)
@@ -218,7 +218,7 @@ struct SettingsTabView: View {
                 Picker("화면 켜 두기 방식", selection: $keepAwakeMode) {
                     Text("선택…").tag("")
                     ForEach(KeepAwakeMode.allCases, id: \.rawValue) { m in
-                        Text(m == .continuous && !ka.onAC ? "계속 (충전 중에만)" : m.title).tag(m.rawValue)
+                        Text(m == .continuous && !ka.onAC ? String(localized: "계속 (충전 중에만)") : m.title).tag(m.rawValue)
                     }
                 }
                 .labelsHidden().pickerStyle(.menu).fixedSize()
@@ -256,9 +256,9 @@ struct SettingsTabView: View {
         } trailing: {
             indicatorControl
         }
-        row("키보드·마우스를 쓰면 끄기") { toggle($autoStopOnInput) }
-        row("배터리로 쓰면 끄기") { toggle($autoStopOnBattery) }
-        row("배터리가 너무 적으면 끄기") {
+        row(String(localized: "키보드·마우스를 쓰면 끄기")) { toggle($autoStopOnInput) }
+        row(String(localized: "배터리로 쓰면 끄기")) { toggle($autoStopOnBattery) }
+        row(String(localized: "배터리가 너무 적으면 끄기")) {
             HStack(spacing: 4 * scale) {
                 Button("+") { lowBatteryPercent = KeepAwake.clampedLowBattery(lowBatteryPercent + 5) }
                     .font(controlFont)
@@ -428,7 +428,7 @@ struct SettingsTabView: View {
 
     /// 「비우기」 → 그 자리에 확인 줄(무엇을 지우는지, 되돌릴 수 없음) → 「비우기」를 한 번 더 눌러야 지운다.
     @ViewBuilder private func clearRow(_ target: ClearTarget) -> some View {
-        let title = target == .memo ? "메모장 비우기" : "할 일 비우기"
+        let title = target == .memo ? String(localized: "메모장 비우기") : String(localized: "할 일 비우기")
         if confirmClear == target {
             VStack(alignment: .leading, spacing: 4 * text) {
                 Text(target == .memo
@@ -459,7 +459,7 @@ struct SettingsTabView: View {
     private func clear(_ target: ClearTarget) {
         confirmClear = nil
         let ok = target == .memo ? model.notes.clearMemo() : model.notes.clearTodos()
-        clearMessage = ok ? nil : "백업 파일을 만들지 못해 지우지 않았어요."
+        clearMessage = ok ? nil : String(localized: "백업 파일을 만들지 못해 지우지 않았어요.")
     }
 
     // MARK: 가져오기 확인
@@ -509,7 +509,7 @@ struct SettingsTabView: View {
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(title)
+            Text(LocalizedStringKey(title))
                 .font(.system(size: 10.5 * text, weight: .bold))
                 .foregroundStyle(palette.sectionTitle)
                 .padding(.top, 6 * scale)
@@ -524,12 +524,12 @@ struct SettingsTabView: View {
         let c = control()
         return ViewThatFits(in: .horizontal) {
             HStack(spacing: 8 * scale) {
-                Text(label).font(font).lineLimit(1).fixedSize()
+                Text(LocalizedStringKey(label)).font(font).lineLimit(1).fixedSize()
                 Spacer(minLength: 8 * scale)
                 c.fixedSize()
             }
             VStack(alignment: .leading, spacing: 2 * text) {
-                Text(label).font(font).lineLimit(1)
+                Text(LocalizedStringKey(label)).font(font).lineLimit(1)
                 HStack {
                     Spacer(minLength: 0)
                     c
@@ -548,7 +548,7 @@ struct SettingsTabView: View {
     private func refreshLogin() {
         loginEnabled = LoginItem.isEnabled
         loginMessage = LoginItem.status == .requiresApproval
-            ? "시스템 설정 → 일반 → 로그인 항목에서 TopTiroir를 허용해 주세요." : nil
+            ? String(localized: "시스템 설정 → 일반 → 로그인 항목에서 TopTiroir를 허용해 주세요.") : nil
     }
 
     private func setLogin(_ enabled: Bool) {
@@ -557,7 +557,7 @@ struct SettingsTabView: View {
             try LoginItem.set(enabled)
             refreshLogin()
         } catch {
-            loginMessage = "자동 실행을 바꾸지 못했어요: \(error.localizedDescription)"
+            loginMessage = String(localized: "자동 실행을 바꾸지 못했어요: \(error.localizedDescription)")
             loginEnabled = LoginItem.isEnabled
         }
     }

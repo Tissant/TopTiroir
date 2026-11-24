@@ -175,7 +175,7 @@ final class FavoritesStore {
             }
         }
         changed()
-        if !dups.isEmpty { say("이미 있어요: \(dups.joined(separator: ", "))") }
+        if !dups.isEmpty { say(String(localized: "이미 있어요: \(dups.joined(separator: ", "))")) }
         else if !bad.isEmpty { say(FavoriteURL.message(.scheme)) }
     }
 
@@ -187,21 +187,21 @@ final class FavoritesStore {
             let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
             let item = FavoriteItem(kind: .url, name: n.isEmpty ? FavoriteURL.defaultName(for: url) : n,
                                     location: url.absoluteString)
-            if case .duplicate(let d) = document.add(item, at: path) { return "이미 있어요: \(d)" }
+            if case .duplicate(let d) = document.add(item, at: path) { return String(localized: "이미 있어요: \(d)") }
             changed()
             return nil
         }
     }
 
-    static let tooDeepMessage = "폴더는 3단계까지만 만들 수 있어요."
+    static let tooDeepMessage = String(localized: "폴더는 3단계까지만 만들 수 있어요.")
 
     func addGroup(name: String, at path: [UUID]) -> String? {
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !n.isEmpty else { return "폴더 이름을 적어 주세요." }
+        guard !n.isEmpty else { return String(localized: "폴더 이름을 적어 주세요.") }
         switch document.add(.group(n), at: path) {
-        case .duplicate(let d): return "같은 이름의 폴더가 있어요: \(d)"
+        case .duplicate(let d): return String(localized: "같은 이름의 폴더가 있어요: \(d)")
         case .tooDeep: return Self.tooDeepMessage
-        case .noSuchGroup: return "폴더를 찾을 수 없어요."
+        case .noSuchGroup: return String(localized: "폴더를 찾을 수 없어요.")
         case .added:
             changed()
             return nil
@@ -242,8 +242,8 @@ final class FavoritesStore {
             document = copy
             changed()
         case .tooDeep: say(Self.tooDeepMessage)
-        case .intoItself: say("폴더를 자기 안으로는 옮길 수 없어요.")
-        case .duplicate(let name): say("그 폴더에 이미 있어요: \(name)")
+        case .intoItself: say(String(localized: "폴더를 자기 안으로는 옮길 수 없어요."))
+        case .duplicate(let name): say(String(localized: "그 폴더에 이미 있어요: \(name)"))
         case .unchanged, .notFound: break
         }
     }
@@ -284,7 +284,7 @@ final class FavoritesStore {
         let action = FavoriteAction.decide(item, resolved: resolve(item))
         if action == .missing {
             missing.insert(item.id)
-            say("「\(item.name)」을(를) 찾을 수 없어요. 옮겨졌거나 지워졌을 수 있어요.")
+            say(String(localized: "「\(item.name)」을(를) 찾을 수 없어요. 옮겨졌거나 지워졌을 수 있어요."))
         } else if action.closesDrawer {
             opener.perform(action) { _ in opened() }
         }
@@ -423,7 +423,7 @@ final class FavoritesStore {
                 document = doc
                 dirty = true
                 saveNow()
-                notice = "폴더는 3단계까지라 더 깊은 폴더 \(moved)개를 한 단계 위로 옮겼어요. (이전 상태는 백업)"
+                notice = String(localized: "폴더는 3단계까지라 더 깊은 폴더 \(moved)개를 한 단계 위로 옮겼어요. (이전 상태는 백업)")
                 favLog.notice("3단계 초과 폴더 정리: \(moved)개")
             } else {
                 document = doc
@@ -433,10 +433,10 @@ final class FavoritesStore {
         // 읽을 수 없는 파일은 지우지 않고 옆으로 옮긴다.
         let aside = fileURL.deletingLastPathComponent().appending(path: "favorites-읽기실패-\(Int(Date().timeIntervalSince1970)).json")
         if (try? FileManager.default.moveItem(at: fileURL, to: aside)) != nil {
-            notice = "예전 즐겨찾기 파일을 읽지 못해 \(aside.lastPathComponent)로 보관했어요."
+            notice = String(localized: "예전 즐겨찾기 파일을 읽지 못해 \(aside.lastPathComponent)로 보관했어요.")
         } else {
             saveBlocked = true
-            notice = "즐겨찾기 파일을 읽지 못했어요. 파일을 지키려고 저장하지 않아요."
+            notice = String(localized: "즐겨찾기 파일을 읽지 못했어요. 파일을 지키려고 저장하지 않아요.")
         }
     }
 }

@@ -158,9 +158,9 @@ final class NotesStore {
         let aside = fileURL.deletingLastPathComponent().appending(path: "notes-읽기실패-\(stamp).json")
         do {
             try FileManager.default.moveItem(at: fileURL, to: aside)
-            notice = "예전 메모 파일을 읽지 못해 \(aside.lastPathComponent)로 보관했어요."
+            notice = String(localized: "예전 메모 파일을 읽지 못해 \(aside.lastPathComponent)로 보관했어요.")
         } catch {
-            notice = "메모 파일을 읽지 못했어요. 파일을 지키려고 이번에는 저장하지 않아요."
+            notice = String(localized: "메모 파일을 읽지 못했어요. 파일을 지키려고 이번에는 저장하지 않아요.")
             saveBlocked = true
         }
     }

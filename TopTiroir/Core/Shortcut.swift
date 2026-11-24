@@ -39,7 +39,7 @@ struct Shortcut: Equatable, Sendable {
         if modifiers & Modifier.option != 0 { s += "⌥" }
         if modifiers & Modifier.shift != 0 { s += "⇧" }
         if modifiers & Modifier.command != 0 { s += "⌘" }
-        return s + (Self.keyName(keyCode) ?? "키 \(keyCode)")
+        return s + (Self.keyName(keyCode) ?? String(localized: "키 \(keyCode)"))
     }
 
     /// 저장한 숫자에서 되살린다. 잘못된 값이면 F12.

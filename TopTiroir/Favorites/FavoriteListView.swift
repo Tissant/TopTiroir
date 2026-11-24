@@ -95,9 +95,9 @@ struct FavoriteListView: View {
         let items = store.document.list(at: path) ?? []
         return VStack(alignment: .leading, spacing: 0) {
             if items.isEmpty {
-                Text(level == 0 ? (editing ? "Finder에서 앱·파일·폴더를 끌어다 놓거나\n위 단추로 넣어 보세요"
-                                           : "「수정」을 누르고 앱·파일·폴더·웹 주소를\n끌어다 놓거나 골라서 넣어 보세요")
-                                : "비어 있어요")
+                Text(level == 0 ? (editing ? String(localized: "Finder에서 앱·파일·폴더를 끌어다 놓거나\n위 단추로 넣어 보세요")
+                                           : String(localized: "「수정」을 누르고 앱·파일·폴더·웹 주소를\n끌어다 놓거나 골라서 넣어 보세요"))
+                                : String(localized: "비어 있어요"))
                     .font(.system(size: m.fontSize * 0.95))
                     .foregroundStyle(palette.tabText.opacity(0.7))
                     .multilineTextAlignment(.center)
@@ -163,17 +163,17 @@ struct FavoriteListView: View {
     /// 수정 중 추가 단추(아이콘만, 이름은 툴팁): Finder에서 고르기 · 웹 주소 · 새 폴더 · 목록 구분선
     private var addActions: some View {
         HStack(spacing: 4 * m.scale) {
-            addButton("plus.rectangle.on.folder", help: "Finder에서 고르기") {
+            addButton("plus.rectangle.on.folder", help: String(localized: "Finder에서 고르기")) {
                 store.noticeLevel = level
                 model.onChooseFiles?(path)
             }
-            addButton("globe", help: "웹 주소 추가") { startInput(.web) }
-            addButton("folder.badge.plus", help: "새 폴더 만들기") {
+            addButton("globe", help: String(localized: "웹 주소 추가")) { startInput(.web) }
+            addButton("folder.badge.plus", help: String(localized: "새 폴더 만들기")) {
                 store.noticeLevel = level
                 if FavoritesDocument.canAddGroup(at: path) { startInput(.group) }
                 else { store.say(FavoritesStore.tooDeepMessage) }
             }
-            addButton("minus", help: "목록 구분선 추가") { store.addSeparator(at: path) }
+            addButton("minus", help: String(localized: "목록 구분선 추가")) { store.addSeparator(at: path) }
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 4 * m.scale)
@@ -234,7 +234,7 @@ struct FavoriteListView: View {
             model.hoveredFavoriteKind = inside ? FavoriteKindName.of(item.kind) : nil
         }
         .contextMenu { menuItems(item) }
-        .help(missing ? "찾을 수 없어요: \(item.location ?? item.name)" : (item.location ?? item.name))
+        .help(missing ? String(localized: "찾을 수 없어요: \(item.location ?? item.name)") : (item.location ?? item.name))
         .onDrop(of: [.topTiroirFavorite, .fileURL, .url], delegate: rowDelegate(item, next: next))
         // 수정 중이 아니면 단추로(첫 클릭에 바로 반응), 수정 중이면 손잡이 끌기를 막지 않게 탭 동작으로
         return Group {
@@ -354,7 +354,7 @@ struct FavoriteListView: View {
             TextField("이름 (비워 두면 사이트 이름)", text: $nameText).textFieldStyle(.roundedBorder)
             TextField("https://", text: $addressText).textFieldStyle(.roundedBorder)
                 .onSubmit(addWeb)
-            inputFooter(ok: "넣기", action: addWeb)
+            inputFooter(ok: String(localized: "넣기"), action: addWeb)
         }
         .font(.system(size: m.fontSize))
         .padding(4)
@@ -364,7 +364,7 @@ struct FavoriteListView: View {
         VStack(alignment: .leading, spacing: 4) {
             TextField("폴더 이름", text: $nameText).textFieldStyle(.roundedBorder)
                 .onSubmit(addGroup)
-            inputFooter(ok: "만들기", action: addGroup)
+            inputFooter(ok: String(localized: "만들기"), action: addGroup)
         }
         .font(.system(size: m.fontSize))
         .padding(4)

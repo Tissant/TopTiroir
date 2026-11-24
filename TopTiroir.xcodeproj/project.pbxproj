@@ -26,6 +26,7 @@
 		445194BF5D950D3375CB8C3D /* Indent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C52E6A1347875A504FA26784 /* Indent.swift */; };
 		593C2987E72464FE340F8BA6 /* DrawerTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E87107AB9AF1BF46DCE1FF7 /* DrawerTab.swift */; };
 		63D929C3C4B57FC244D40FBC /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BB8608DDEB7320413593E45 /* Layout.swift */; };
+		658AC46FF95289F4BC91B71F /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = FFE7671FF6B3B958865EC09B /* Localizable.xcstrings */; };
 		687E32CA1D73A51D2E0F5262 /* SettingsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C5153CE28F64E8AEDC1AE21 /* SettingsKeys.swift */; };
 		708CD1E1A0A49BFC72475250 /* Shortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EBC25EEB88270002AA48674 /* Shortcut.swift */; };
 		73B58942CFC10AF0D160FE46 /* V021Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA71A9FFAA3633F1A8C9E059 /* V021Tests.swift */; };
@@ -114,6 +115,7 @@
 		DD6DAB603C734A62AD42537F /* IndicatorOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorOverlay.swift; sourceTree = "<group>"; };
 		EA71A9FFAA3633F1A8C9E059 /* V021Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V021Tests.swift; sourceTree = "<group>"; };
 		FB6D1B0D0C1CD95B4D2B72E2 /* BandColorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BandColorPanel.swift; sourceTree = "<group>"; };
+		FFE7671FF6B3B958865EC09B /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -233,6 +235,7 @@
 				5A2FFDA725D27FAA48BEDC8D /* Favorites */,
 				DD326141CB0D6053634DCC69 /* KeepAwake */,
 				0E0A0B3127CCB06213403540 /* Notes */,
+				FF92A23980A9F00E28C4CF2B /* Resources */,
 				02FB111614D970A676D776E1 /* Screen */,
 				66373C8C5DC44B5651CD1E2C /* System */,
 			);
@@ -256,6 +259,14 @@
 				327DCB298B9A3FE4E2696695 /* TopTiroirTests */,
 				1A756768481A0113AF91B34B /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		FF92A23980A9F00E28C4CF2B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FFE7671FF6B3B958865EC09B /* Localizable.xcstrings */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -341,6 +352,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3989B811B961AF49D8409F96 /* Assets.xcassets in Resources */,
+				658AC46FF95289F4BC91B71F /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -446,9 +458,11 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = local.toptiroir.app;
 				PRODUCT_NAME = TopTiroir;
 				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
 			name = Debug;
 		};
@@ -489,7 +503,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
@@ -511,7 +525,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.5.0;
+				MARKETING_VERSION = 0.6.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -533,9 +547,11 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = local.toptiroir.app;
 				PRODUCT_NAME = TopTiroir;
 				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
 			name = Release;
 		};
@@ -592,7 +608,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
@@ -608,7 +624,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.5.0;
+				MARKETING_VERSION = 0.6.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -15,8 +15,8 @@ settings:
     DEAD_CODE_STRIPPING: YES
     # Apple Silicon 맥만 쓰므로 arm64만(앱 크기 절반)
     ARCHS: arm64
-    MARKETING_VERSION: 0.5.0
-    CURRENT_PROJECT_VERSION: 8
+    MARKETING_VERSION: 0.6.0
+    CURRENT_PROJECT_VERSION: 9
 targets:
   TopTiroir:
     type: application
@@ -26,7 +26,8 @@ targets:
       path: TopTiroir/Info.plist
       properties:
         CFBundleDisplayName: TopTiroir
-        CFBundleDevelopmentRegion: ko
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, ko]
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
@@ -41,6 +42,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: local.toptiroir.app
         PRODUCT_NAME: TopTiroir
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
   TopTiroirTests:
     type: bundle.unit-test
     platform: macOS

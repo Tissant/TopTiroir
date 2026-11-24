@@ -34,12 +34,12 @@ struct ShortcutsView: View {
             .padding(.bottom, 6 * s)
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    section("서랍", palette) {
+                    section(String(localized: "서랍"), palette) {
                         editable(.openDrawer, palette)
                         ForEach(FixedShortcut.drawer, id: \.title) { fixed($0, palette) }
                         editable(.quit, palette)
                     }
-                    section("탭 이동", palette) {
+                    section(String(localized: "탭 이동"), palette) {
                         editable(.tabNotes, palette)
                         editable(.tabFavorites, palette)
                         editable(.tabSettings, palette)
@@ -49,7 +49,7 @@ struct ShortcutsView: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.top, 2 * s)
                     }
-                    section("메모·할 일 편집 (바꿀 수 없음)", palette) {
+                    section(String(localized: "메모·할 일 편집 (바꿀 수 없음)"), palette) {
                         ForEach(FixedShortcut.editing, id: \.title) { fixed($0, palette) }
                     }
                     Text("입력칸이 아닌 곳을 누르면 글자 커서가 빠져요.")
@@ -91,7 +91,7 @@ struct ShortcutsView: View {
     private func section<Content: View>(_ title: String, _ palette: DrawerPalette,
                                         @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(title)
+            Text(LocalizedStringKey(title))
                 .font(.system(size: 10.5 * t, weight: .bold))
                 .foregroundStyle(palette.sectionTitle)
                 .padding(.top, 6 * s)
@@ -115,7 +115,7 @@ struct ShortcutsView: View {
                         .help("기본값 \(action.defaultShortcut.displayName)으로")
                 }
                 Button { model.beginRecording(action) } label: {
-                    Text(recording ? "새 키를 누르세요…" : keyTitle(action))
+                    Text(recording ? String(localized: "새 키를 누르세요…") : keyTitle(action))
                         .font(.system(size: 11 * t, weight: .medium))
                         .foregroundStyle(recording ? Color.white : Color.primary)
                         .padding(.horizontal, 6 * s)
@@ -142,7 +142,7 @@ struct ShortcutsView: View {
 
     private func keyTitle(_ action: ShortcutAction) -> String {
         let name = model.shortcuts[action].displayName
-        return action == .openDrawer && !model.hotKeyAvailable ? "\(name) (사용 불가)" : name
+        return action == .openDrawer && !model.hotKeyAvailable ? String(localized: "\(name) (사용 불가)") : name
     }
 
     /// 보기 전용 줄(흐리게)
