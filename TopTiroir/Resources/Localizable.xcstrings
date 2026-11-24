@@ -375,6 +375,17 @@
         }
       }
     },
+    "개발용": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dev build"
+          }
+        }
+      }
+    },
     "계속": {
       "extractionState": "manual",
       "localizations": {

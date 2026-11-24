@@ -184,7 +184,7 @@ struct SettingsTabView: View {
                         .padding(.bottom, 2 * scale)
                 }
                 row(String(localized: "TopTiroir 정보")) {
-                    Text("버전 \(Self.version)").font(font).foregroundStyle(.secondary)
+                    Text(Self.versionLabel).font(font).foregroundStyle(.secondary)
                 }
                 row(String(localized: "TopTiroir 종료")) {
                     HStack(spacing: 6 * scale) {
@@ -568,6 +568,10 @@ struct SettingsTabView: View {
     }
 
     static let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
+    static var versionLabel: String {
+        let base = String(localized: "버전 \(version)")
+        return AppIdentity.isDevBuild ? base + " · " + String(localized: "개발용") : base
+    }
 }
 
 /// 퍼센트 슬라이드바. 손을 떼면 저장한다.

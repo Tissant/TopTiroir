@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		028AA18B2F10D32FE4B82A83 /* V030Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C246282C63281AAD6055C /* V030Tests.swift */; };
+		05CC948F2ECBF543CBCD7331 /* AppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22BC36A5C9C5EA4DE1740BD9 /* AppIdentity.swift */; };
 		0BF4CBC873CDEDC4E066875B /* HotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B74B6949289544EE2A2EFDD /* HotKey.swift */; };
 		1548057D9324F98DB3ED5A02 /* PowerServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB36D70CB884B7E2E3FED1D5 /* PowerServices.swift */; };
 		1AE92C18A17B02427B64E060 /* V080Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADBCAE4B839C3EF630CC01D6 /* V080Tests.swift */; };
@@ -29,6 +30,7 @@
 		63D929C3C4B57FC244D40FBC /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BB8608DDEB7320413593E45 /* Layout.swift */; };
 		658AC46FF95289F4BC91B71F /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = FFE7671FF6B3B958865EC09B /* Localizable.xcstrings */; };
 		687E32CA1D73A51D2E0F5262 /* SettingsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C5153CE28F64E8AEDC1AE21 /* SettingsKeys.swift */; };
+		6EA7F0CF604BC1E63DACE186 /* AppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22BC36A5C9C5EA4DE1740BD9 /* AppIdentity.swift */; };
 		708CD1E1A0A49BFC72475250 /* Shortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EBC25EEB88270002AA48674 /* Shortcut.swift */; };
 		73B58942CFC10AF0D160FE46 /* V021Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA71A9FFAA3633F1A8C9E059 /* V021Tests.swift */; };
 		7C353473763C1B86860419BD /* DrawerTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E87107AB9AF1BF46DCE1FF7 /* DrawerTab.swift */; };
@@ -51,6 +53,7 @@
 		AF8B5FD6B14673BAA0EC8EF3 /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E462402B2A4CF5C85EE793A /* SettingsTabView.swift */; };
 		AFDB25033FD840F9FE95498B /* ShortcutsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10D5D4D2041447DC39BE6008 /* ShortcutsView.swift */; };
 		B372548859B7D1F9960F204F /* V022Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7CAEF9327E2CE970662A968 /* V022Tests.swift */; };
+		B824CD8C52114079260F4881 /* V100Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F138474B8F7E82393CA0ABB9 /* V100Tests.swift */; };
 		BEEC84F7DFAB16CB7658F413 /* NotesData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CAAD9B3594C51D679A2387 /* NotesData.swift */; };
 		C04DF26EDFFAE9080D9BA669 /* KeepAwake.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39359E99BD1854414BBCBDE3 /* KeepAwake.swift */; };
 		C477A34B8B004BDCB8642488 /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BB8608DDEB7320413593E45 /* Layout.swift */; };
@@ -75,6 +78,7 @@
 		10D5D4D2041447DC39BE6008 /* ShortcutsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsView.swift; sourceTree = "<group>"; };
 		1DD0C228795C02307F70E032 /* FavoriteIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteIcon.swift; sourceTree = "<group>"; };
 		1F04A0625AE172265BF09FD7 /* V023Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V023Tests.swift; sourceTree = "<group>"; };
+		22BC36A5C9C5EA4DE1740BD9 /* AppIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIdentity.swift; sourceTree = "<group>"; };
 		2A18CE8CBCF7DAA09E210BCB /* MemoTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoTextView.swift; sourceTree = "<group>"; };
 		2B9610464627D9B3A77D4911 /* ScreenDecorations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenDecorations.swift; sourceTree = "<group>"; };
 		2E462402B2A4CF5C85EE793A /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
@@ -118,6 +122,7 @@
 		DD6DAB603C734A62AD42537F /* IndicatorOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorOverlay.swift; sourceTree = "<group>"; };
 		EA71A9FFAA3633F1A8C9E059 /* V021Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V021Tests.swift; sourceTree = "<group>"; };
 		F0CDAD87259969CEFF64903F /* V070Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V070Tests.swift; sourceTree = "<group>"; };
+		F138474B8F7E82393CA0ABB9 /* V100Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V100Tests.swift; sourceTree = "<group>"; };
 		FB6D1B0D0C1CD95B4D2B72E2 /* BandColorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BandColorPanel.swift; sourceTree = "<group>"; };
 		FFE7671FF6B3B958865EC09B /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -165,6 +170,7 @@
 				4697639D1F1A2A93DD097C0E /* V050Tests.swift */,
 				F0CDAD87259969CEFF64903F /* V070Tests.swift */,
 				ADBCAE4B839C3EF630CC01D6 /* V080Tests.swift */,
+				F138474B8F7E82393CA0ABB9 /* V100Tests.swift */,
 			);
 			path = TopTiroirTests;
 			sourceTree = "<group>";
@@ -172,6 +178,7 @@
 		4FC54BD6150F620700777DE7 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				22BC36A5C9C5EA4DE1740BD9 /* AppIdentity.swift */,
 				498B00E68935B8F40D049424 /* BackupFile.swift */,
 				7CA2784087280F846FB4FC7C /* DrawerSizing.swift */,
 				4E87107AB9AF1BF46DCE1FF7 /* DrawerTab.swift */,
@@ -370,6 +377,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E0838C2CC5739A42981BE78A /* AppDelegate.swift in Sources */,
+				05CC948F2ECBF543CBCD7331 /* AppIdentity.swift in Sources */,
 				F42079675F72332ADABDE83A /* BackupFile.swift in Sources */,
 				1DA53E10F2911C5852D4ECC9 /* BandColorPanel.swift in Sources */,
 				DB8248E056F60EE1FE84C6A6 /* DrawerController.swift in Sources */,
@@ -411,6 +419,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6EA7F0CF604BC1E63DACE186 /* AppIdentity.swift in Sources */,
 				25F04643E54F8CC5F13E85AB /* BackupFile.swift in Sources */,
 				9468F3FA1D0C4999366D4831 /* DrawerSizing.swift in Sources */,
 				7C353473763C1B86860419BD /* DrawerTab.swift in Sources */,
@@ -434,6 +443,7 @@
 				938DBDFD72D32F9B2D06941B /* V050Tests.swift in Sources */,
 				833993C0EE29BC447B9EE3E4 /* V070Tests.swift in Sources */,
 				1AE92C18A17B02427B64E060 /* V080Tests.swift in Sources */,
+				B824CD8C52114079260F4881 /* V100Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -459,6 +469,7 @@
 		82C7486BFBF656F8CBEB1266 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_DISPLAY_NAME = "TopTiroir Dev";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = TopTiroir/Info.plist;
@@ -467,8 +478,8 @@
 					"@executable_path/../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = local.toptiroir.app;
-				PRODUCT_NAME = TopTiroir;
+				PRODUCT_BUNDLE_IDENTIFIER = local.toptiroir.app.dev;
+				PRODUCT_NAME = TopTiroirDev;
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
@@ -511,7 +522,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 16;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
@@ -533,7 +544,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.9.0;
+				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -548,6 +559,7 @@
 		FCECB4B98A0807F26AB7A2C4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_DISPLAY_NAME = TopTiroir;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = TopTiroir/Info.plist;
@@ -616,7 +628,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 16;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
@@ -632,7 +644,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.9.0;
+				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

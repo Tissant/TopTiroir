@@ -25,10 +25,11 @@ final class NotesStore {
         load()
     }
 
-    /// ~/Library/Application Support/TopTiroir/notes.json
+    /// ~/Library/Application Support/TopTiroir/notes.json (개발판은 TopTiroir-Dev 폴더)
     static var defaultFileURL: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        return base.appending(path: "TopTiroir", directoryHint: .isDirectory).appending(path: "notes.json")
+        let folder = AppIdentity.supportFolderName(bundleID: Bundle.main.bundleIdentifier)
+        return base.appending(path: folder, directoryHint: .isDirectory).appending(path: "notes.json")
     }
 
     // MARK: 바꾸기

@@ -15,8 +15,8 @@ settings:
     DEAD_CODE_STRIPPING: YES
     # Apple Silicon 맥만 쓰므로 arm64만(앱 크기 절반)
     ARCHS: arm64
-    MARKETING_VERSION: 0.9.0
-    CURRENT_PROJECT_VERSION: 12
+    MARKETING_VERSION: 1.0.0
+    CURRENT_PROJECT_VERSION: 16
 targets:
   TopTiroir:
     type: application
@@ -25,7 +25,7 @@ targets:
     info:
       path: TopTiroir/Info.plist
       properties:
-        CFBundleDisplayName: TopTiroir
+        CFBundleDisplayName: $(APP_DISPLAY_NAME)
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, ko]
         CFBundleShortVersionString: $(MARKETING_VERSION)
@@ -44,9 +44,16 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: local.toptiroir.app
         PRODUCT_NAME: TopTiroir
+        APP_DISPLAY_NAME: TopTiroir
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         LOCALIZATION_PREFERS_STRING_CATALOGS: YES
         SWIFT_EMIT_LOC_STRINGS: YES
+      # 개발판(Debug): 번들 ID·앱 이름·실행 파일 이름을 따로 둬서 설치판과 함께 쓸 수 있게 한다.
+      configs:
+        Debug:
+          PRODUCT_BUNDLE_IDENTIFIER: local.toptiroir.app.dev
+          PRODUCT_NAME: TopTiroirDev
+          APP_DISPLAY_NAME: TopTiroir Dev
   TopTiroirTests:
     type: bundle.unit-test
     platform: macOS
