@@ -6,6 +6,17 @@ A small menu-bar helper for MacBooks with a notch. TopTiroir hides the notch beh
 
 > Status: v1.0, personal project. Built with Swift (SwiftUI + AppKit) and Apple frameworks only — no third-party packages.
 
+## Screenshots
+
+*The UI follows the system language; these screenshots show the Korean UI.*
+
+![The drawer dropping from the hidden notch, Notes/To-dos tab](docs/images/overview.png)
+
+<p>
+  <img src="docs/images/favorites.png" width="49%" alt="Favorites tab">
+  <img src="docs/images/settings.png" width="49%" alt="Settings tab">
+</p>
+
 ## Features
 
 - **Notch hiding** — a black band over the menu bar makes the notch disappear into the bezel. Optional rounded screen corners and band color.

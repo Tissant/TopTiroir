@@ -6,6 +6,15 @@
 
 > 상태: v1.0, 개인 프로젝트. Swift(SwiftUI + AppKit)와 Apple 기본 프레임워크만 쓰고, 외부 패키지는 없어요.
 
+## 화면
+
+![노치를 숨긴 화면에서 내려온 서랍, 메모/할 일 탭](docs/images/overview.png)
+
+<p>
+  <img src="docs/images/favorites.png" width="49%" alt="즐겨찾기 탭">
+  <img src="docs/images/settings.png" width="49%" alt="설정 탭">
+</p>
+
 ## 기능
 
 - **노치 숨기기** — 메뉴막대 위에 검은 띠를 얹어 노치가 베젤에 묻히게 해요. 화면 모서리 둥글게, 띠 색 설정이 있어요.
