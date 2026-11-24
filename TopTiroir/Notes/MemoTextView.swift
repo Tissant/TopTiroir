@@ -7,6 +7,8 @@ struct MemoTextView: NSViewRepresentable {
     @Binding var text: String
     let fontSize: CGFloat
     let indentWidth: Int
+    /// 값이 올라가면 메모 칸에 글자 커서를 둔다(맨 끝으로)
+    var focusRequest = 0
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
@@ -26,6 +28,7 @@ struct MemoTextView: NSViewRepresentable {
         tv.textColor = .labelColor
         tv.font = .systemFont(ofSize: fontSize)
         tv.string = text
+        context.coordinator.lastFocusRequest = focusRequest
         return scroll
     }
 
@@ -34,11 +37,22 @@ struct MemoTextView: NSViewRepresentable {
         guard let tv = scroll.documentView as? NSTextView else { return }
         if tv.string != text { tv.string = text }          // 비우기 등 바깥에서 바뀐 경우
         if tv.font?.pointSize != fontSize { tv.font = .systemFont(ofSize: fontSize) }
+        if focusRequest != context.coordinator.lastFocusRequest {
+            context.coordinator.lastFocusRequest = focusRequest
+            DispatchQueue.main.async {
+                guard let window = tv.window else { return }
+                window.makeKeyAndOrderFront(nil)
+                window.makeFirstResponder(tv)
+                tv.setSelectedRange(NSRange(location: (tv.string as NSString).length, length: 0))
+                tv.scrollRangeToVisible(tv.selectedRange())
+            }
+        }
     }
 
     @MainActor
     final class Coordinator: NSObject, NSTextViewDelegate {
         var parent: MemoTextView
+        var lastFocusRequest = 0
 
         init(_ parent: MemoTextView) { self.parent = parent }
 

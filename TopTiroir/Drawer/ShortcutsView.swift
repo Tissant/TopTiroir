@@ -36,6 +36,7 @@ struct ShortcutsView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     section(String(localized: "서랍"), palette) {
                         editable(.openDrawer, palette)
+                        editable(.quickMemo, palette)
                         ForEach(FixedShortcut.drawer, id: \.title) { fixed($0, palette) }
                         editable(.quit, palette)
                     }
@@ -142,7 +143,8 @@ struct ShortcutsView: View {
 
     private func keyTitle(_ action: ShortcutAction) -> String {
         let name = model.shortcuts[action].displayName
-        return action == .openDrawer && !model.hotKeyAvailable ? String(localized: "\(name) (사용 불가)") : name
+        let unavailable = (action == .openDrawer && !model.hotKeyAvailable) || (action == .quickMemo && !model.quickMemoAvailable)
+        return unavailable ? String(localized: "\(name) (사용 불가)") : name
     }
 
     /// 보기 전용 줄(흐리게)

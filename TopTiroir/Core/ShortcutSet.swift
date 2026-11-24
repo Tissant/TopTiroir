@@ -2,12 +2,16 @@
 
 /// 바꿀 수 있는 단축키 항목
 enum ShortcutAction: String, CaseIterable, Identifiable, Sendable {
-    case openDrawer, tabNotes, tabFavorites, tabSettings, quit
+    case openDrawer, quickMemo, tabNotes, tabFavorites, tabSettings, quit
     var id: String { rawValue }
+
+    /// 서랍이 닫혀 있어도 눌리는 전역 단축키(Carbon 등록) 항목
+    var isGlobal: Bool { self == .openDrawer || self == .quickMemo }
 
     var title: String {
         switch self {
         case .openDrawer: String(localized: "서랍 열기·닫기")
+        case .quickMemo: String(localized: "빠른 메모")
         case .tabNotes: String(localized: "메모/할 일 탭")
         case .tabFavorites: String(localized: "즐겨찾기 탭")
         case .tabSettings: String(localized: "설정 탭")
@@ -18,6 +22,7 @@ enum ShortcutAction: String, CaseIterable, Identifiable, Sendable {
     var defaultShortcut: Shortcut {
         switch self {
         case .openDrawer: .f12
+        case .quickMemo: Shortcut(keyCode: 46, modifiers: Shortcut.Modifier.control | Shortcut.Modifier.option) // ⌃⌥M
         case .tabNotes: Shortcut(keyCode: 122, modifiers: 0)      // F1
         case .tabFavorites: Shortcut(keyCode: 120, modifiers: 0)  // F2
         case .tabSettings: Shortcut(keyCode: 99, modifiers: 0)    // F3
@@ -101,7 +106,7 @@ struct ShortcutSet: Equatable, Sendable {
         if s.keyCode == Shortcut.escapeKeyCode { return .cancel }
         guard Shortcut.keyName(s.keyCode) != nil else { return .unsupported }
         switch action {
-        case .openDrawer:
+        case .openDrawer, .quickMemo:
             if Shortcut.check(keyCode: s.keyCode, modifiers: s.modifiers) == .needsModifier { return .needsModifier }
         case .quit:
             if s.modifiers & Shortcut.Modifier.command == 0 { return .needsCommand }

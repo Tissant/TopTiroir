@@ -7,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let drawer = DrawerController()
     private let statusItem = TemporaryStatusItem()
     private var hotKey: HotKey?
+    private var quickMemoKey: HotKey?
     private let keepAwake = KeepAwakeController()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -91,30 +92,55 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func setUpHotKey() {
         let defaults = UserDefaults.standard
         let model = drawer.model
-        let key = HotKey { [weak self] in self?.drawer.toggle() }
-        hotKey = key
+        let drawerKey = HotKey(id: 1) { [weak self] in self?.drawer.toggle() }
+        let memoKey = HotKey(id: 2) { [weak self] in self?.drawer.quickMemo() }
+        hotKey = drawerKey
+        quickMemoKey = memoKey
         model.loadShortcuts()
         model.shortcut = Shortcut.stored(keyCode: defaults.integer(forKey: SettingsKey.hotKeyCode),
                                          modifiers: defaults.integer(forKey: SettingsKey.hotKeyModifiers))
-        model.hotKeyAvailable = key.register(model.shortcut)
+        // 빠른 메모 키: 저장값이 있으면 그것, 없으면 기본값(⌃⌥M)
+        let memoSaved = defaults.object(forKey: SettingsKey.shortcut(.quickMemo)) != nil
+        let memoStored = ShortcutSet.unpack(defaults.integer(forKey: SettingsKey.shortcut(.quickMemo)),
+                                            fallback: ShortcutAction.quickMemo.defaultShortcut)
+        model.shortcuts[.quickMemo] = memoSaved ? memoStored : ShortcutAction.quickMemo.defaultShortcut
+        // 두 키가 같으면(직접 바꾼 값 충돌) 빠른 메모를 기본값으로
+        if model.shortcuts[.quickMemo] == model.shortcut { model.shortcuts[.quickMemo] = ShortcutAction.quickMemo.defaultShortcut }
+        model.hotKeyAvailable = drawerKey.register(model.shortcut)
+        model.quickMemoAvailable = memoKey.register(model.shortcuts[.quickMemo])
+        model.onQuickMemo = { [weak self] in self?.drawer.quickMemo() }
 
-        // 바꾸는 동안에는 지금 키를 풀어 둬야 그 키도 새 키로 받을 수 있다.
-        model.onBeginHotKeyRecording = { key.unregister() }
+        func key(for action: ShortcutAction) -> HotKey { action == .openDrawer ? drawerKey : memoKey }
+        func setAvailable(_ action: ShortcutAction, _ ok: Bool) {
+            if action == .openDrawer { model.hotKeyAvailable = ok } else { model.quickMemoAvailable = ok }
+        }
+
+        // 바꾸는 동안에는 전역 키를 풀어 둬야 그 키도 새 키로 받을 수 있다.
+        model.onBeginHotKeyRecording = { drawerKey.unregister(); memoKey.unregister() }
         model.onCancelHotKeyRecording = { [weak model] in
             guard let model else { return }
-            model.hotKeyAvailable = key.register(model.shortcut)
+            model.hotKeyAvailable = drawerKey.register(model.shortcut)
+            model.quickMemoAvailable = memoKey.register(model.shortcuts[.quickMemo])
         }
-        model.onApplyHotKey = { [weak model] new in
+        model.onApplyHotKey = { [weak model] action, new in
             guard let model else { return false }
-            if key.register(new) {
-                model.shortcut = new
-                model.hotKeyAvailable = true
-                defaults.set(Int(new.keyCode), forKey: SettingsKey.hotKeyCode)
-                defaults.set(Int(new.modifiers), forKey: SettingsKey.hotKeyModifiers)
+            let other = action == .openDrawer ? ShortcutAction.quickMemo : .openDrawer
+            if key(for: action).register(new) {
+                model.shortcuts[action] = new
+                setAvailable(action, true)
+                if action == .openDrawer {
+                    defaults.set(Int(new.keyCode), forKey: SettingsKey.hotKeyCode)
+                    defaults.set(Int(new.modifiers), forKey: SettingsKey.hotKeyModifiers)
+                } else {
+                    defaults.set(ShortcutSet.pack(new), forKey: SettingsKey.shortcut(action))
+                }
+                // 녹화 시작 때 풀어 둔 다른 전역 키를 다시 등록
+                setAvailable(other, key(for: other).register(model.shortcuts[other]))
                 return true
             }
-            // 실패: 이전 키를 다시 등록한다.
-            model.hotKeyAvailable = key.register(model.shortcut)
+            // 실패: 이전 키들을 다시 등록한다.
+            setAvailable(action, key(for: action).register(model.shortcuts[action]))
+            setAvailable(other, key(for: other).register(model.shortcuts[other]))
             return false
         }
     }

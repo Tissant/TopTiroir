@@ -96,7 +96,8 @@ struct NotesTabView: View {
         return ZStack(alignment: .topLeading) {
             shape.fill(memoFill.shadow(.inner(color: .black.opacity(palette.dark ? 0.45 : 0.18), radius: 2.5 * scale, y: 1)))
             MemoTextView(text: Binding(get: { store.document.memo }, set: { store.setMemo($0) }),
-                         fontSize: 12 * text, indentWidth: Indent.clampedWidth(indentWidth))
+                         fontSize: 12 * text, indentWidth: Indent.clampedWidth(indentWidth),
+                         focusRequest: model.memoFocusRequest)
                 .padding(.horizontal, 5 * scale)
                 .padding(.vertical, 6 * scale)
             if store.document.memo.isEmpty {

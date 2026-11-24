@@ -132,6 +132,11 @@ final class DrawerModel {
     // 단축키
     var shortcuts = ShortcutSet.defaults
     var hotKeyAvailable = true
+    /// 빠른 메모 전역 키가 등록됐는지(다른 앱이 쓰면 false)
+    var quickMemoAvailable = true
+    /// 올라가면 메모 칸에 글자 커서를 둔다(MemoTextView가 값 변화를 본다)
+    var memoFocusRequest = 0
+    @ObservationIgnored var onQuickMemo: (() -> Void)?
     /// 지금 「새 키를 누르세요」 상태인 항목
     var recordingAction: ShortcutAction?
     /// 항목별 안내(충돌·실패 등)
@@ -157,7 +162,7 @@ final class DrawerModel {
     var textOpacityPreview: Double?
     /// 단축키 바꾸기: 시작(현재 키 잠시 해제) / 적용(성공하면 true) / 취소(현재 키 다시 등록)
     @ObservationIgnored var onBeginHotKeyRecording: (() -> Void)?
-    @ObservationIgnored var onApplyHotKey: ((Shortcut) -> Bool)?
+    @ObservationIgnored var onApplyHotKey: ((ShortcutAction, Shortcut) -> Bool)?
     @ObservationIgnored var onCancelHotKeyRecording: (() -> Void)?
 
     var hasUnsavedTodoEdit: Bool {
@@ -238,10 +243,10 @@ final class DrawerModel {
     func finishRecording(_ new: Shortcut?) {
         guard let action = recordingAction else { return }
         recordingAction = nil
-        if let new, action == .openDrawer {
+        if let new, action.isGlobal {
             assign(new, to: action)          // 새 키로 전역 등록(실패하면 이전 키로)
         } else {
-            onCancelHotKeyRecording?()       // 지금 서랍 열기 키를 다시 등록
+            onCancelHotKeyRecording?()       // 전역 키(서랍 열기·빠른 메모)를 다시 등록
             if let new { assign(new, to: action) }
         }
     }
@@ -272,11 +277,11 @@ final class DrawerModel {
     func resetAll() {
         if recordingAction != nil { finishRecording(nil) }
         shortcutMessage = nil
-        for action in ShortcutAction.allCases where action != .openDrawer {
+        for action in ShortcutAction.allCases where !action.isGlobal {
             shortcuts[action] = action.defaultShortcut
             save(action)
         }
-        assign(.f12, to: .openDrawer)
+        for action in ShortcutAction.allCases where action.isGlobal { assign(action.defaultShortcut, to: action) }
     }
 
     // 예전 이름(설정 탭의 서랍 열기 줄)
@@ -285,9 +290,9 @@ final class DrawerModel {
     func resetHotKey() { reset(.openDrawer) }
 
     private func assign(_ new: Shortcut, to action: ShortcutAction) {
-        if action == .openDrawer {
-            let old = shortcut
-            if onApplyHotKey?(new) == true {
+        if action.isGlobal {
+            let old = shortcuts[action]
+            if onApplyHotKey?(action, new) == true {
                 if shortcutMessage?.action == action { shortcutMessage = nil }
             } else {
                 say(action, String(localized: "\(new.displayName)은(는) 다른 앱에서 쓰고 있어 바꾸지 못했어요. \(old.displayName)을(를) 그대로 써요."))
@@ -300,7 +305,7 @@ final class DrawerModel {
     }
 
     private func save(_ action: ShortcutAction) {
-        guard action != .openDrawer else { return } // 서랍 열기는 AppDelegate가 저장(전역 등록 성공 때만)
+        guard !action.isGlobal else { return } // 전역 키는 AppDelegate가 저장(등록 성공 때만)
         UserDefaults.standard.set(ShortcutSet.pack(shortcuts[action]), forKey: SettingsKey.shortcut(action))
     }
 
@@ -311,7 +316,7 @@ final class DrawerModel {
     /// 저장된 값 불러오기(서랍 열기는 AppDelegate가 따로)
     func loadShortcuts() {
         let d = UserDefaults.standard
-        for action in ShortcutAction.allCases where action != .openDrawer {
+        for action in ShortcutAction.allCases where !action.isGlobal {
             guard d.object(forKey: SettingsKey.shortcut(action)) != nil else { continue }
             let stored = ShortcutSet.unpack(d.integer(forKey: SettingsKey.shortcut(action)), fallback: action.defaultShortcut)
             if ShortcutSet.isOldTabDefault(stored, for: action) {
@@ -394,6 +399,18 @@ final class DrawerController {
         model.onShowColorPanel = { [weak self] key, fallback in
             guard let self else { return }
             BandColorPanel.shared.show(key: key, fallback: fallback, nextTo: panel.frame, above: panel.level)
+        }
+    }
+
+    /// 「빠른 메모」: 서랍을 메모/할 일 탭으로 열고(이미 열려 있으면 그대로) 메모 칸에 글자 커서를 둔다.
+    func quickMemo() {
+        let wasOpen = isOpen
+        open()
+        guard isOpen else { return }   // 닫는 중이 아니라 열기에 실패한 경우
+        model.tab = .notes
+        // 탭 화면이 그려진 뒤에 커서를 요청한다(처음 열 때는 메모 칸이 아직 없다).
+        DispatchQueue.main.asyncAfter(deadline: .now() + (wasOpen ? 0.02 : 0.12)) { [weak self] in
+            self?.model.memoFocusRequest += 1
         }
     }
 

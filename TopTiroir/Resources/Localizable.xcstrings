@@ -1376,6 +1376,17 @@
         }
       }
     },
+    "빠른 메모": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quick memo"
+          }
+        }
+      }
+    },
     "삭제": {
       "extractionState": "manual",
       "localizations": {
