@@ -1,14 +1,13 @@
 {
   "sourceLanguage": "ko",
-  "version": "1.0",
   "strings": {
-    "%@\n(더블클릭하면 고치기)": {
+    "%@\n(더블클릭하면 고치기, 끌어서 순서 바꾸기)": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@\n(Double-click to edit)"
+            "value": "%@\n(Double-click to edit, drag to reorder)"
           }
         }
       }
@@ -2653,5 +2652,6 @@
         }
       }
     }
-  }
+  },
+  "version": "1.0"
 }

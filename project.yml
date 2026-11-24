@@ -15,8 +15,8 @@ settings:
     DEAD_CODE_STRIPPING: YES
     # Apple Silicon 맥만 쓰므로 arm64만(앱 크기 절반)
     ARCHS: arm64
-    MARKETING_VERSION: 0.6.0
-    CURRENT_PROJECT_VERSION: 9
+    MARKETING_VERSION: 0.7.0
+    CURRENT_PROJECT_VERSION: 10
 targets:
   TopTiroir:
     type: application
@@ -36,6 +36,9 @@ targets:
         UTExportedTypeDeclarations:
           - UTTypeIdentifier: local.toptiroir.favorite
             UTTypeDescription: TopTiroir 즐겨찾기 줄
+            UTTypeConformsTo: [public.data]
+          - UTTypeIdentifier: local.toptiroir.todo
+            UTTypeDescription: TopTiroir 할 일 줄
             UTTypeConformsTo: [public.data]
     settings:
       base:

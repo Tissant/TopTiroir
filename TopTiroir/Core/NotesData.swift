@@ -57,6 +57,19 @@ struct NotesDocument: Codable, Equatable, Sendable {
         return !trimmed.isEmpty && trimmed != original
     }
 
+    /// 끌어서 순서 바꾸기: id를 `slot`(옮기기 전 목록 기준 칸 번호, 0 = 맨 위, count = 맨 아래) 자리로 옮긴다.
+    /// 제자리면 false.
+    @discardableResult
+    mutating func moveTodo(id: UUID, toSlot slot: Int) -> Bool {
+        guard let from = todos.firstIndex(where: { $0.id == id }) else { return false }
+        let s = min(max(slot, 0), todos.count)
+        // 자기 바로 위·아래 칸은 제자리
+        guard s != from, s != from + 1 else { return false }
+        let item = todos.remove(at: from)
+        todos.insert(item, at: s > from ? s - 1 : s)
+        return true
+    }
+
     /// 목록에서만 지운다.
     mutating func removeTodo(id: UUID) {
         todos.removeAll { $0.id == id }
@@ -80,5 +93,27 @@ struct NotesDocument: Codable, Equatable, Sendable {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         return try encoder.encode(self)
+    }
+}
+
+/// 할 일 끌기 계산(화면 없이 테스트할 수 있게 분리)
+enum TodoDrag {
+    /// 끌어서 순서 바꾸기 전용 종류(메모·즐겨찾기가 글자·파일로 받지 않게)
+    static let reorderType = "local.toptiroir.todo"
+
+    /// 목록 안쪽 세로 위치(맨 위 = 0)에서 가장 가까운 칸 경계 번호(0...count)
+    static func slot(contentY: CGFloat, rowHeight: CGFloat, count: Int) -> Int {
+        guard rowHeight > 0, count > 0 else { return 0 }
+        return min(max(Int((contentY / rowHeight).rounded()), 0), count)
+    }
+
+    /// 보이는 칸 위·아래 가장자리에 가까울수록 빨리 스크롤(초당 점 수). 위쪽은 음수, 가운데는 0.
+    static func autoScrollSpeed(pointerY: CGFloat, viewportHeight: CGFloat,
+                                edge: CGFloat = 28, maxSpeed: CGFloat = 420) -> CGFloat {
+        guard viewportHeight > 0, edge > 0 else { return 0 }
+        let e = min(edge, viewportHeight / 2)
+        if pointerY < e { return -maxSpeed * min(1, (e - pointerY) / e) }
+        if pointerY > viewportHeight - e { return maxSpeed * min(1, (pointerY - (viewportHeight - e)) / e) }
+        return 0
     }
 }

@@ -55,6 +55,11 @@ final class NotesStore {
         scheduleSave()
     }
 
+    func moveTodo(_ id: UUID, toSlot slot: Int) {
+        guard document.moveTodo(id: id, toSlot: slot) else { return }
+        scheduleSave()
+    }
+
     func removeTodo(_ id: UUID) {
         document.removeTodo(id: id)
         scheduleSave()

@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// 메모/할 일 탭: 위 메모, 아래 할 일(기본 3:2, 사이 손잡이로 조절). 둘은 따로 스크롤된다.
 struct NotesTabView: View {
@@ -17,6 +18,17 @@ struct NotesTabView: View {
     @State private var showClearMenu = false
     @FocusState private var focus: Field?
     private enum Field { case newTodo }
+
+    // 할 일 끌어서 순서 바꾸기
+    @State private var draggingTodo: UUID?
+    @State private var dropSlot: Int?
+    @State private var todoScroll = ScrollPosition()
+    @State private var scrollY: CGFloat = 0
+    @State private var scrollMax: CGFloat = 0
+    @State private var viewportH: CGFloat = 0
+    /// 마지막으로 알려 준 포인터의 보이는 칸 안 세로 위치
+    @State private var pointerVY: CGFloat = 0
+    @State private var autoScrollTask: Task<Void, Never>?
 
     private var spacing: CGFloat { 8 * scale }
     private var rowHeight: CGFloat { 22 * text }
@@ -36,6 +48,7 @@ struct NotesTabView: View {
         .padding(.top, 6 * scale)
         .frame(height: height + 6 * scale, alignment: .top)
         .onChange(of: model.openCount) {
+            finishTodoDrag(move: false)
             // 새로 열면 펼친 ▾ 목록과 비우기 확인 줄은 접힌 상태로
             showClearMenu = false
             confirmClearTodos = false
@@ -140,16 +153,30 @@ struct NotesTabView: View {
             Rectangle().fill(palette.divider).frame(height: 1)
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    ForEach(store.document.todos) { item in
+                    ForEach(Array(store.document.todos.enumerated()), id: \.element.id) { index, item in
                         TodoRow(item: item, height: rowHeight, scale: scale, text: text, palette: palette,
                                 editDraft: editBinding(for: item),
                                 onToggle: { store.toggleTodo(item.id) },
                                 onDelete: { store.removeTodo(item.id) },
                                 onBeginEdit: { model.beginTodoEdit(item) },
-                                onCommitEdit: { model.commitTodoEdit() })
+                                onCommitEdit: { model.commitTodoEdit() },
+                                onDragStart: { beginTodoDrag(item.id) },
+                                dragging: draggingTodo == item.id)
+                            .overlay(alignment: .top) { slotLine(index) }
+                            .onDrop(of: [.topTiroirTodo], delegate: dropDelegate(index: index))
+                    }
+                    if draggingTodo != nil {
+                        // 맨 아래로 옮길 수 있게 끝에 빈 칸
+                        Color.clear.frame(height: rowHeight)
+                            .overlay(alignment: .top) { slotLine(store.document.todos.count) }
+                            .onDrop(of: [.topTiroirTodo], delegate: dropDelegate(index: store.document.todos.count))
                     }
                 }
             }
+            .scrollPosition($todoScroll)
+            .onScrollGeometryChange(for: CGFloat.self) { $0.contentOffset.y } action: { _, y in scrollY = y }
+            .onScrollGeometryChange(for: CGFloat.self) { max($0.contentSize.height - $0.containerSize.height, 0) } action: { _, v in scrollMax = v }
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportH = $0 }
             .scrollBounceBehavior(.basedOnSize)
             .overlay {
                 if store.document.todos.isEmpty {
@@ -159,6 +186,70 @@ struct NotesTabView: View {
                 }
             }
         }
+    }
+
+    // MARK: 할 일 끌기
+
+    /// 놓을 자리 표시(줄 위쪽 주황 선)
+    @ViewBuilder private func slotLine(_ index: Int) -> some View {
+        if dropSlot == index, draggingTodo != nil {
+            Rectangle().fill(Brand.orange).frame(height: 2)
+        }
+    }
+
+    private func dropDelegate(index: Int) -> TodoDropDelegate {
+        TodoDropDelegate(
+            update: { yInRow in
+                pointerVY = CGFloat(index) * rowHeight + yInRow - scrollY
+                updateSlot()
+            },
+            perform: {
+                finishTodoDrag(move: true)
+            })
+    }
+
+    private func updateSlot() {
+        dropSlot = TodoDrag.slot(contentY: pointerVY + scrollY, rowHeight: rowHeight,
+                                 count: store.document.todos.count)
+    }
+
+    private func beginTodoDrag(_ id: UUID) {
+        draggingTodo = id
+        dropSlot = nil
+        autoScrollTask?.cancel()
+        // 끄는 동안 가장자리에 닿으면 목록을 스크롤한다. 마우스를 놓으면(놓을 곳이 없어도) 끝낸다.
+        autoScrollTask = Task { @MainActor in
+            let step: Duration = .milliseconds(16)
+            var sawPressed = false   // 끄는 동안 버튼 상태가 보고되지 않는 경우엔 끝냄 판단을 하지 않는다
+            while !Task.isCancelled {
+                let pressed = NSEvent.pressedMouseButtons & 1 != 0
+                if pressed { sawPressed = true }
+                else if sawPressed {
+                    // 놓은 곳에서 받는 처리(performDrop)가 먼저 끝나도록 잠깐 기다렸다가 정리
+                    try? await Task.sleep(for: .milliseconds(300))
+                    if !Task.isCancelled { finishTodoDrag(move: false) }
+                    return
+                }
+                let speed = TodoDrag.autoScrollSpeed(pointerY: pointerVY, viewportHeight: viewportH)
+                if speed != 0, dropSlot != nil {
+                    let y = min(max(scrollY + speed * 0.016, 0), scrollMax)
+                    if y != scrollY {
+                        todoScroll.scrollTo(y: y)
+                        scrollY = y
+                        updateSlot()
+                    }
+                }
+                try? await Task.sleep(for: step)
+            }
+        }
+    }
+
+    private func finishTodoDrag(move: Bool) {
+        if move, let id = draggingTodo, let slot = dropSlot { store.moveTodo(id, toSlot: slot) }
+        autoScrollTask?.cancel()
+        autoScrollTask = nil
+        draggingTodo = nil
+        dropSlot = nil
     }
 
     /// 「완료된 일 삭제 | ▾」. ▾ 목록은 시스템 메뉴 대신 서랍 안에 그려, 오른쪽 끝을 단추 오른쪽 끝에 맞춘다
@@ -271,11 +362,36 @@ struct TodoRow: View {
     let onDelete: () -> Void
     let onBeginEdit: () -> Void
     let onCommitEdit: () -> Void
+    /// 줄을 끌기 시작할 때
+    let onDragStart: () -> Void
+    /// 지금 끌려가는 줄이면 흐리게
+    let dragging: Bool
 
     @State private var hovering = false
     @FocusState private var editFocused: Bool
 
     var body: some View {
+        // 줄 전체를 끌어 순서를 바꾼다(고치는 중에는 글 칸 안 글자 끌기를 막지 않게 끔)
+        if editDraft == nil {
+            rowBody.onDrag {
+                // 끌기가 시작되는 순간에 화면을 바꾸면 끌기가 취소될 수 있어 한 박자 뒤에 알린다.
+                DispatchQueue.main.async { onDragStart() }
+                let p = NSItemProvider()
+                let data = Data(item.id.uuidString.utf8)
+                p.registerDataRepresentation(forTypeIdentifier: UTType.topTiroirTodo.identifier,
+                                             visibility: .ownProcess) { done in done(data, nil); return nil }
+                return p
+            } preview: {
+                Text(item.text).font(.system(size: 12 * text)).lineLimit(1)
+                    .padding(.horizontal, 8).padding(.vertical, 3)
+                    .background(RoundedRectangle(cornerRadius: 5).fill(.regularMaterial))
+            }
+        } else {
+            rowBody
+        }
+    }
+
+    private var rowBody: some View {
         HStack(spacing: 6 * scale) {
             Button(action: onToggle) {
                 Image(systemName: item.done ? "checkmark.circle.fill" : "circle")
@@ -307,7 +423,7 @@ struct TodoRow: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2, perform: onBeginEdit)
-                    .help(String(localized: "\(item.text)\n(더블클릭하면 고치기)"))
+                    .help(String(localized: "\(item.text)\n(더블클릭하면 고치기, 끌어서 순서 바꾸기)"))
             }
             Button(action: onDelete) {
                 Image(systemName: "xmark")
@@ -322,7 +438,31 @@ struct TodoRow: View {
         .padding(.horizontal, 6 * scale)
         .frame(minHeight: height)
         .background(RoundedRectangle(cornerRadius: 4 * scale).fill(hovering ? palette.tabFill : .clear))
+        .opacity(dragging ? 0.4 : 1)
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
+    }
+}
+
+/// 끌어서 순서 바꾸기 전용 종류(메모·즐겨찾기가 받지 않게, 다른 앱으로는 나가지 않음)
+extension UTType {
+    static let topTiroirTodo = UTType(exportedAs: TodoDrag.reorderType)
+}
+
+/// 할 일 줄 위에 끌어 놓기: 위치를 알려 주고, 놓으면 순서를 바꾼다.
+struct TodoDropDelegate: DropDelegate {
+    /// 줄 안쪽 세로 위치
+    let update: (CGFloat) -> Void
+    let perform: () -> Void
+
+    func validateDrop(info: DropInfo) -> Bool { info.hasItemsConforming(to: [.topTiroirTodo]) }
+    func dropEntered(info: DropInfo) { update(info.location.y) }
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        update(info.location.y)
+        return DropProposal(operation: .move)
+    }
+    func performDrop(info: DropInfo) -> Bool {
+        perform()
+        return true
     }
 }

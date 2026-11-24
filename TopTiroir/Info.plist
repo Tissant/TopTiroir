@@ -43,6 +43,16 @@
 			<key>UTTypeIdentifier</key>
 			<string>local.toptiroir.favorite</string>
 		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>TopTiroir 할 일 줄</string>
+			<key>UTTypeIdentifier</key>
+			<string>local.toptiroir.todo</string>
+		</dict>
 	</array>
 </dict>
 </plist>
