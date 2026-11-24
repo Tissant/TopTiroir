@@ -16,6 +16,7 @@ struct SettingsTabView: View {
     @AppStorage(SettingsKey.drawerScale) private var drawerScale = SettingsDefault.drawerScale
     @AppStorage(SettingsKey.notchOpenMode) private var notchOpenMode = SettingsDefault.notchOpenMode
     @AppStorage(SettingsKey.closeMode) private var closeMode = SettingsDefault.closeMode
+    @AppStorage(SettingsKey.closeOnOpen) private var closeOnOpen = SettingsDefault.closeOnOpen
     @AppStorage(SettingsKey.drawerOpacity) private var drawerOpacity = SettingsDefault.drawerOpacity
     @AppStorage(SettingsKey.openTabMode) private var openTabMode = SettingsDefault.openTabMode
     @AppStorage(SettingsKey.textScale) private var textScale = SettingsDefault.textScale
@@ -124,6 +125,10 @@ struct SettingsTabView: View {
                         ForEach(CloseMode.allCases, id: \.rawValue) { Text($0.title).tag($0.rawValue) }
                     }
                     .labelsHidden().pickerStyle(.menu).fixedSize()
+                }
+                row("열면 서랍 바로 닫기") {
+                    toggle($closeOnOpen)
+                        .help("즐겨찾기의 앱·파일·폴더·웹 주소를 열면 서랍을 바로 닫아요. 끄면 마우스가 서랍 밖으로 나갈 때 닫혀요")
                 }
                 row("단축키") {
                     Button(model.shortcutsWindowOpen ? "단축키 닫기" : "단축키 보기…") {

@@ -10,6 +10,7 @@
 		028AA18B2F10D32FE4B82A83 /* V030Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C246282C63281AAD6055C /* V030Tests.swift */; };
 		0BF4CBC873CDEDC4E066875B /* HotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B74B6949289544EE2A2EFDD /* HotKey.swift */; };
 		1548057D9324F98DB3ED5A02 /* PowerServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB36D70CB884B7E2E3FED1D5 /* PowerServices.swift */; };
+		1AE92C18A17B02427B64E060 /* V080Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADBCAE4B839C3EF630CC01D6 /* V080Tests.swift */; };
 		1DA53E10F2911C5852D4ECC9 /* BandColorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB6D1B0D0C1CD95B4D2B72E2 /* BandColorPanel.swift */; };
 		1FBB95470C8BE0ECA965EB36 /* NotesData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CAAD9B3594C51D679A2387 /* NotesData.swift */; };
 		21FB4B21535FBC7132F45130 /* FavoritesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 902C35A9F9B12DAB6CAC6FA1 /* FavoritesStore.swift */; };
@@ -100,6 +101,7 @@
 		93D6F76AB5EDA9B217D73CC1 /* NotchHotspot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchHotspot.swift; sourceTree = "<group>"; };
 		9C5153CE28F64E8AEDC1AE21 /* SettingsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsKeys.swift; sourceTree = "<group>"; };
 		9EBC25EEB88270002AA48674 /* Shortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shortcut.swift; sourceTree = "<group>"; };
+		ADBCAE4B839C3EF630CC01D6 /* V080Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V080Tests.swift; sourceTree = "<group>"; };
 		B4F2F30A5B034B0D914CC3B1 /* DrawerRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawerRootView.swift; sourceTree = "<group>"; };
 		B7CAEF9327E2CE970662A968 /* V022Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V022Tests.swift; sourceTree = "<group>"; };
 		B95FDA167F22AAA1AFF0416C /* Favorites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Favorites.swift; sourceTree = "<group>"; };
@@ -162,6 +164,7 @@
 				5E445E4A4B600CEE4C2A0078 /* V040Tests.swift */,
 				4697639D1F1A2A93DD097C0E /* V050Tests.swift */,
 				F0CDAD87259969CEFF64903F /* V070Tests.swift */,
+				ADBCAE4B839C3EF630CC01D6 /* V080Tests.swift */,
 			);
 			path = TopTiroirTests;
 			sourceTree = "<group>";
@@ -430,6 +433,7 @@
 				3EAAC93A0337C47DBD1507CC /* V040Tests.swift in Sources */,
 				938DBDFD72D32F9B2D06941B /* V050Tests.swift in Sources */,
 				833993C0EE29BC447B9EE3E4 /* V070Tests.swift in Sources */,
+				1AE92C18A17B02427B64E060 /* V080Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -507,7 +511,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
@@ -529,7 +533,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.7.0;
+				MARKETING_VERSION = 0.8.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -612,7 +616,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
@@ -628,7 +632,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.7.0;
+				MARKETING_VERSION = 0.8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

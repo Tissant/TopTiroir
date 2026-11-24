@@ -365,7 +365,14 @@ final class DrawerController {
         model.onColumnsChanged = { [weak self] in self?.layoutColumns() }
         model.favorites.onChange = { [weak self] in self?.layoutColumns() }
         // 열어도 바로 닫지 않고, 마우스가 서랍·폴더 창 밖으로 나가면 닫는다(여러 개를 이어서 열 수 있게).
-        model.onFavoriteOpened = { [weak self] in self?.closeWhenMouseLeaves() }
+        // 설정 「열면 서랍 바로 닫기」를 켜면 열기가 끝나는 즉시 닫는다.
+        model.onFavoriteOpened = { [weak self] in
+            if UserDefaults.standard.object(forKey: SettingsKey.closeOnOpen) as? Bool ?? SettingsDefault.closeOnOpen {
+                self?.close()
+            } else {
+                self?.closeWhenMouseLeaves()
+            }
+        }
         model.onChooseFiles = { [weak self] path in self?.chooseFiles(into: path) }
         model.onExportBackup = { [weak self] in self?.exportBackup() }
         model.onImportBackup = { [weak self] in self?.importBackup() }

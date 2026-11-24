@@ -15,8 +15,8 @@ settings:
     DEAD_CODE_STRIPPING: YES
     # Apple Silicon 맥만 쓰므로 arm64만(앱 크기 절반)
     ARCHS: arm64
-    MARKETING_VERSION: 0.7.0
-    CURRENT_PROJECT_VERSION: 10
+    MARKETING_VERSION: 0.8.0
+    CURRENT_PROJECT_VERSION: 11
 targets:
   TopTiroir:
     type: application

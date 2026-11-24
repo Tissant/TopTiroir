@@ -8,6 +8,7 @@ enum SettingsKey {
     static let drawerScale = "drawerScale"
     static let notchOpenMode = "notchOpenMode"
     static let closeMode = "closeMode"
+    static let closeOnOpen = "closeOnOpen"   // v0.8.0: 즐겨찾기를 열면 서랍을 바로 닫기
     static let drawerOpacity = "drawerOpacity"
     static let textScale = "textScale"
     static let indentWidth = "indentWidth"
@@ -43,6 +44,7 @@ enum SettingsDefault {
     static let drawerScale = 1.0
     static let notchOpenMode = NotchOpenMode.click.rawValue
     static let closeMode = CloseMode.outsideOrEsc.rawValue
+    static let closeOnOpen = false         // 끄면 기존처럼 「실행 후 유지」(마우스가 나가면 닫힘)
     static let drawerOpacity = 1.0
     static let textScale = 1.0
     static let indentWidth = Indent.defaultWidth
